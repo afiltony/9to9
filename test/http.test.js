@@ -112,6 +112,23 @@ describe('public registration over HTTP', () => {
     assert.match(html, /value="Keepme"/);
   });
 
+  test('a photo over the 1 MB limit is refused with a clear message', async () => {
+    const c = client();
+    const csrf = await c.csrfFrom('/register');
+    const fd = new FormData();
+    fd.append('_csrf', csrf);
+    for (const [k, v] of Object.entries(validBody({ last_name: 'Bigphoto' }))) fd.append(k, v);
+    const big = Buffer.alloc(1024 * 1024 + 10, 0);
+    photo.copy(big); // valid PNG header, padded past 1 MB
+    fd.append('profile_photo', new Blob([big], { type: 'image/png' }), 'big.png');
+    const res = await c.request('/register', { method: 'POST', body: fd });
+    assert.equal(res.status, 422);
+    const html = await res.text();
+    assert.match(html, /too large \(max 1 MB\)/);
+    assert.match(html, /value="Bigphoto"/);
+    assert.match(html, /max 1 MB/);
+  });
+
   test('a non-image upload is rejected', async () => {
     const c = client();
     const csrf = await c.csrfFrom('/register');

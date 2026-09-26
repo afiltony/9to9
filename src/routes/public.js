@@ -106,6 +106,7 @@ async function renderForm(req, res, { values = {}, errors = {}, message = null, 
     selected: new Set(selected.length ? selected : preselect),
     badSlots: new Set(badSlots),
     maxPhotoMb: Math.round(config.maxPhotoBytes / 1024 / 1024),
+    maxPhotoBytes: config.maxPhotoBytes,
   });
 }
 

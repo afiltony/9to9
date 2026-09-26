@@ -52,7 +52,21 @@
   var dropzone = document.getElementById('dropzone');
   var MAX_SIDE = 900;
 
+  var maxBytes = photo ? Number(photo.dataset.maxBytes) || 0 : 0;
+
+  // the server refuses anything over the limit, so say so now rather than after submitting
+  function tooLarge(file) {
+    if (!maxBytes || file.size <= maxBytes) return false;
+    photoName.textContent = 'This photo is too large (' + (file.size / 1048576).toFixed(1) + ' MB). Maximum ' +
+      Math.round(maxBytes / 1048576) + ' MB — please choose a smaller photo.';
+    photo.value = '';
+    preview.style.backgroundImage = '';
+    preview.classList.remove('has');
+    return true;
+  }
+
   function showPreview(file) {
+    if (tooLarge(file)) return;
     preview.style.backgroundImage = 'url(' + URL.createObjectURL(file) + ')';
     preview.innerHTML = '';
     preview.classList.add('has');

@@ -41,5 +41,5 @@ export const config = {
     connectionLimit: Number(env.DB_POOL_SIZE || 10),
   },
   storageDir: path.resolve(ROOT, env.STORAGE_DIR || 'storage'),
-  maxPhotoBytes: Number(env.MAX_PHOTO_KB || 3072) * 1024,
+  maxPhotoBytes: Number(env.MAX_PHOTO_KB || 1024) * 1024,
 };

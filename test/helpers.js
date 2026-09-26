@@ -2,6 +2,7 @@
 process.env.DB_NAME = process.env.TEST_DB_NAME || 'nine_to_nine_test';
 process.env.SESSION_SECRET = 'test-secret';
 process.env.NODE_ENV = 'test';
+process.env.MAX_PHOTO_KB = '1024';
 process.env.BASE_URL = 'http://localhost:3999';
 process.env.STORAGE_DIR = (await import('node:path')).join((await import('node:os')).tmpdir(), 'nine2nine-test-storage');
 
