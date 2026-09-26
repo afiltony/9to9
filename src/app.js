@@ -3,6 +3,7 @@ import express from 'express';
 import session from 'express-session';
 import helmet from 'helmet';
 import { config, ROOT } from './config.js';
+import { healthReport } from './health.js';
 import * as fmt from './lib/format.js';
 import { can, csrfToken, MySqlSessionStore } from './lib/security.js';
 import adminRoutes from './routes/admin.js';
@@ -65,6 +66,12 @@ export function createApp() {
     res.locals.state = null;
     res.locals.isAdminArea = req.path.startsWith('/admin') || req.path.startsWith('/checkin');
     next();
+  });
+
+  // health check runs before the event loader so it works even when the database is empty
+  app.get('/healthz', async (req, res) => {
+    const report = await healthReport().catch((err) => ({ ok: false, error: err.code || err.name }));
+    res.status(report.ok ? 200 : 503).set('Cache-Control', 'no-store').json(report);
   });
 
   app.use(loadEvent);

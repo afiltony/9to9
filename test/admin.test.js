@@ -199,6 +199,11 @@ describe('activity and slot management', () => {
     const activityId = res.headers.get('location').split('/').pop();
     const slotRes = await c.post('/admin/slots', { _csrf: c.csrf, activity_id: activityId, date: '2099-10-10', start_time: '14:00', end_time: '15:00', capacity: '25', status: 'open', back: 'activity' });
     assert.equal(slotRes.status, 303);
+    const list = await c.request('/admin/activities');
+    assert.equal(list.status, 200);
+    assert.match(await list.text(), /Bible Quiz/);
+    assert.equal((await c.request(`/admin/activities/${activityId}`)).status, 200);
+    assert.equal((await c.request('/admin/slots')).status, 200);
     const html = await (await client().request('/register')).text();
     assert.match(html, /Bible Quiz/);
     assert.match(html, /25 places left/);

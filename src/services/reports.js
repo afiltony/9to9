@@ -57,10 +57,15 @@ export const REPORTS = {
     description: 'Bookings and attendance per activity.',
     async build(event) {
       const rows = await query(
-        `SELECT a.name, a.venue, COUNT(s.id) AS slots, SUM(s.capacity) AS capacity, SUM(s.registration_count) AS booked,
-                SUM((SELECT COUNT(*) FROM checkins c WHERE c.slot_id = s.id)) AS attended, SUM(s.capacity IS NULL) AS unlimited
-           FROM activities a LEFT JOIN activity_slots s ON s.activity_id = a.id
-          WHERE a.event_id = ? AND a.requires_slot = 1 GROUP BY a.id ORDER BY a.sort_order`, [event.id]);
+        // subqueries rather than GROUP BY a.id: MariaDB's ONLY_FULL_GROUP_BY rejects the grouped form
+        `SELECT a.name, a.venue,
+                (SELECT COUNT(*) FROM activity_slots s WHERE s.activity_id = a.id) AS slots,
+                (SELECT SUM(s.capacity) FROM activity_slots s WHERE s.activity_id = a.id) AS capacity,
+                (SELECT SUM(s.registration_count) FROM activity_slots s WHERE s.activity_id = a.id) AS booked,
+                (SELECT COUNT(*) FROM checkins c JOIN activity_slots s ON s.id = c.slot_id WHERE s.activity_id = a.id) AS attended,
+                (SELECT COUNT(*) FROM activity_slots s WHERE s.activity_id = a.id AND s.capacity IS NULL) AS unlimited
+           FROM activities a
+          WHERE a.event_id = ? AND a.requires_slot = 1 ORDER BY a.sort_order`, [event.id]);
       return {
         columns: [col('name', 'Activity', 30), col('venue', 'Venue', 20), col('slots', 'Slots', 8), col('capacity', 'Capacity', 10),
           col('booked', 'Booked', 10), col('fill', 'Filled', 9), col('attended', 'Checked in', 11)],

@@ -29,3 +29,14 @@ test('AUTO_SEED leaves an existing event untouched', async () => {
   await bootstrap({ env: { AUTO_SEED: 'true' }, log: () => {} });
   assert.equal((await one('SELECT COUNT(*) AS n FROM events')).n, 1);
 });
+
+test('health report passes on a migrated, seeded database with an admin', async () => {
+  const { healthReport } = await import('../src/health.js');
+  await query(`INSERT INTO admin_users (id, name, email, password_hash, role) VALUES (UUID(), 'A', 'health@test.local', 'x', 'ADMIN')`);
+  const report = await healthReport();
+  assert.equal(report.ok, true, JSON.stringify(report.checks));
+  assert.deepEqual(report.checks.tables.missing, []);
+  assert.deepEqual(report.checks.migrations.pending, []);
+  assert.ok(report.checks.event.slots >= 48);
+  assert.ok(!JSON.stringify(report).includes(process.env.DB_PASSWORD || '\u0000'), 'never exposes the password');
+});

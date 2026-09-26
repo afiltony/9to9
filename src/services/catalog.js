@@ -20,9 +20,11 @@ const intOrNull = (v) => {
 
 export async function listActivities(eventId) {
   return query(
-    `SELECT a.*, COUNT(s.id) AS slot_count, COALESCE(SUM(s.registration_count), 0) AS booked
-       FROM activities a LEFT JOIN activity_slots s ON s.activity_id = a.id
-      WHERE a.event_id = ? GROUP BY a.id ORDER BY a.sort_order, a.name`, [eventId]);
+    `SELECT a.*,
+            (SELECT COUNT(*) FROM activity_slots s WHERE s.activity_id = a.id) AS slot_count,
+            (SELECT COALESCE(SUM(s.registration_count), 0) FROM activity_slots s WHERE s.activity_id = a.id) AS booked
+       FROM activities a
+      WHERE a.event_id = ? ORDER BY a.sort_order, a.name`, [eventId]);
 }
 
 export async function getActivity(eventId, id) {
@@ -72,10 +74,11 @@ export async function saveActivity(eventId, id, body, { imagePath, adminId, ip }
 /** Deletes an activity only when nobody has booked it; otherwise it must be deactivated. */
 export async function deleteActivity(eventId, id, { adminId, ip } = {}) {
   const a = await one(
-    `SELECT a.name, COALESCE(SUM(s.registration_count), 0) AS booked, COUNT(ps.id) AS history
-       FROM activities a LEFT JOIN activity_slots s ON s.activity_id = a.id
-       LEFT JOIN participant_slots ps ON ps.slot_id = s.id
-      WHERE a.id = ? AND a.event_id = ? GROUP BY a.id`, [id, eventId]);
+    `SELECT a.name,
+            (SELECT COUNT(*) FROM participant_slots ps JOIN activity_slots s ON s.id = ps.slot_id
+              WHERE s.activity_id = a.id) AS history
+       FROM activities a
+      WHERE a.id = ? AND a.event_id = ?`, [id, eventId]);
   if (!a) throw new RegistrationError('Activity not found.');
   if (Number(a.history) > 0) throw new RegistrationError('This activity has bookings. Deactivate it instead of deleting it.');
   await query('DELETE FROM activities WHERE id = ?', [id]);

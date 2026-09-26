@@ -7,7 +7,9 @@ import bcrypt from 'bcryptjs';
 import { one, query } from './db.js';
 
 export async function bootstrap({ env = process.env, log = console.log } = {}) {
-  if (env.AUTO_SEED === 'true') {
+  // production loads the programme on start unless AUTO_SEED=false; seeding skips an existing event
+  const autoSeed = env.AUTO_SEED ? env.AUTO_SEED === 'true' : env.NODE_ENV === 'production';
+  if (autoSeed) {
     const { seed } = await import('../scripts/seed.js');
     await seed({ log });
   }

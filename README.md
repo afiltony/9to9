@@ -95,6 +95,9 @@ All settings are in `.env` (see [.env.example](.env.example)). The important one
 - `STORAGE_DIR`: where participant photos are saved. It must be outside the public folder and must survive
   redeploys (see below).
 - `TZ_OFFSET`: `+05:30`. All schedule times are stored as event-local wall-clock time.
+- In production, `BASE_URL`, `SESSION_SECRET`, `DB_NAME`, `DB_USER` and `DB_PASSWORD` are required. If one is missing, the
+  site shows a “not running yet” page naming it. Tables are created and the programme is loaded automatically on
+  start (set `AUTO_MIGRATE=false` or `AUTO_SEED=false` to turn that off).
 
 Per-event settings live in the `events` table:
 
@@ -134,7 +137,10 @@ Hostinger's control panel changes from time to time, so treat the menu names bel
    ```
 6. **HTTPS:** enable the free SSL certificate for the domain. The camera scanner needs it, and secure cookies
    are on in production.
-7. Check: open the site, register a test participant, download both cards, log in at `/admin/login`, and scan
+7. **Check the database:** open `https://your-domain/healthz`. It must show `"ok": true`. It tests the database connection,
+   every table, migrations, the event programme, an admin account, a test write and photo storage. It reports only
+   pass/fail and error codes, never passwords or participant data.
+8. Check: open the site, register a test participant, download both cards, log in at `/admin/login`, and scan
    the card with a phone.
 
 ## Backups
