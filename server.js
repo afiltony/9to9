@@ -29,7 +29,7 @@ function serveSetupError(err) {
     .replace(/'[^']*'/g, "'…'") // hide user names, database names and paths
     .slice(0, 300);
   const hints = {
-    ER_ACCESS_DENIED_ERROR: 'The database user name or password is wrong (DB_USER / DB_PASSWORD).',
+    ER_ACCESS_DENIED_ERROR: 'The database refused the login. If MySQL saw the app connecting from ::1, set DB_HOST=127.0.0.1. Otherwise the user name or password is wrong (DB_USER / DB_PASSWORD).',
     ER_BAD_DB_ERROR: 'The database does not exist — check DB_NAME, including the u123456789_ prefix.',
     ECONNREFUSED: 'Cannot reach the database server — check DB_HOST (usually localhost) and DB_PORT.',
     ENOTFOUND: 'The database host name is wrong — check DB_HOST.',

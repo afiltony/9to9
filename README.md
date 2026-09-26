@@ -118,7 +118,7 @@ a slot, or set `status = 'closed'` to stop bookings for it.
 Hostinger's control panel changes from time to time, so treat the menu names below as a guide.
 
 1. **Database:** hPanel → *Databases* → *MySQL Databases*: create a database and user. Note the database name,
-   user and password; the host is usually `localhost`.
+   user and password; use `DB_HOST=127.0.0.1` (not `localhost`, which Node may turn into IPv6 `::1` and MySQL then refuses).
 2. **App:** hPanel → *Websites* → add a **Node.js** web app (upload a zip of this folder without `node_modules`,
    or connect a GitHub repository).
    - Node version: 20 or newer

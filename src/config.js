@@ -30,7 +30,8 @@ export const config = {
   // event-local offset, used for the DB session time zone so NOW() matches the schedule
   tzOffset: env.TZ_OFFSET || '+05:30',
   db: {
-    host: clean(env.DB_HOST) || (isProd ? 'localhost' : '127.0.0.1'),
+    // 127.0.0.1, not localhost: Node may resolve localhost to ::1, which MySQL grants usually don't cover
+    host: clean(env.DB_HOST) || '127.0.0.1',
     // some shared hosts only accept local logins over the MySQL socket, e.g. /var/lib/mysql/mysql.sock
     ...(clean(env.DB_SOCKET) ? { socketPath: clean(env.DB_SOCKET) } : {}),
     port: Number(env.DB_PORT || 3306),
