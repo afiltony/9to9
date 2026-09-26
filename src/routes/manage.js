@@ -136,7 +136,8 @@ router.post('/admin/settings', requirePermission('event.manage'), imageUpload(['
     const store = async (field) => {
       const file = uploadedFile(req, field);
       if (!file) return null;
-      const r = await saveImage(file, 'branding');
+      // branding keeps its own 5 MB limit so logos stay PNG with transparency
+      const r = await saveImage(file, 'branding', { maxBytes: 5 * 1024 * 1024 });
       if (r.error) throw new ValidationError({ [field]: r.error });
       saved.push(r.path);
       return r.path;

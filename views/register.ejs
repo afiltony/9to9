@@ -67,10 +67,10 @@
                 <span class="dz-preview" id="photo-preview"><%- include('partials/icon', { name: 'camera' }) %></span>
                 <span class="dz-text">
                   <strong>Drag a photo here or tap to upload</strong>
-                  <span class="help" style="display:block">JPG, JPEG or PNG · max <%= maxPhotoMb %> MB · face clearly visible. We resize it for you.</span>
+                  <span class="help" style="display:block">JPG, JPEG or PNG · face clearly visible. Large photos are reduced to <%= maxPhotoMb %> MB automatically.</span>
                   <span class="help" id="photo-name" style="display:block"></span>
                 </span>
-                <input type="file" name="profile_photo" id="<%= id %>" accept="image/jpeg,image/png,image/*" data-max-bytes="<%= maxPhotoBytes %>" <%= f.required ? 'required' : '' %> aria-describedby="<%= id %>_l">
+                <input type="file" name="profile_photo" id="<%= id %>" accept="image/jpeg,image/png,image/*" data-max-bytes="<%= maxPhotoBytes %>" data-max-upload-mb="<%= maxUploadMb %>" <%= f.required ? 'required' : '' %> aria-describedby="<%= id %>_l">
               </label>
             <% } else { %>
               <label for="<%= id %>"><%= f.label %><% if (f.required) { %> <span class="req">*</span><% } %></label>

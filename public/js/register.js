@@ -50,27 +50,23 @@
   var preview = document.getElementById('photo-preview');
   var photoName = document.getElementById('photo-name');
   var dropzone = document.getElementById('dropzone');
-  var MAX_SIDE = 900;
+  var maxBytes = photo ? Number(photo.dataset.maxBytes) || 1048576 : 1048576;
+  var maxUploadBytes = photo ? (Number(photo.dataset.maxUploadMb) || 15) * 1048576 : 15728640;
+  // tried in order until the photo fits under maxBytes; the server shrinks anything that still doesn't
+  var STEPS = [[900, 0.86], [900, 0.72], [720, 0.7], [600, 0.62], [480, 0.55]];
 
-  var maxBytes = photo ? Number(photo.dataset.maxBytes) || 0 : 0;
-
-  // the server refuses anything over the limit, so say so now rather than after submitting
-  function tooLarge(file) {
-    if (!maxBytes || file.size <= maxBytes) return false;
-    photoName.textContent = 'This photo is too large (' + (file.size / 1048576).toFixed(1) + ' MB). Maximum ' +
-      Math.round(maxBytes / 1048576) + ' MB — please choose a smaller photo.';
+  function clearPhoto(message) {
+    photoName.textContent = message;
     photo.value = '';
     preview.style.backgroundImage = '';
     preview.classList.remove('has');
-    return true;
   }
 
-  function showPreview(file) {
-    if (tooLarge(file)) return;
+  function showPreview(file, note) {
     preview.style.backgroundImage = 'url(' + URL.createObjectURL(file) + ')';
     preview.innerHTML = '';
     preview.classList.add('has');
-    photoName.textContent = 'Photo ready ✓ (' + Math.round(file.size / 1024) + ' KB)';
+    photoName.textContent = 'Photo ready ✓ (' + Math.round(file.size / 1024) + ' KB)' + (note || '');
   }
 
   function setFile(file) {
@@ -79,17 +75,18 @@
     photo.files = dt.files;
   }
 
-  function handlePhoto(file) {
-    if (!file) return;
-    if (!/^image\//.test(file.type)) {
-      photoName.textContent = 'Please choose a JPG or PNG photograph.';
-      photo.value = '';
+  // browser can't resize: send the original and let the server reduce it, if it isn't huge
+  function useOriginal(file) {
+    if (file.size > maxUploadBytes) {
+      clearPhoto('This photo is very large (' + (file.size / 1048576).toFixed(1) + ' MB). Please choose one under ' + Math.round(maxUploadBytes / 1048576) + ' MB.');
       return;
     }
-    photoName.textContent = 'Preparing photo…';
-    if (!window.createImageBitmap || !window.DataTransfer) { showPreview(file); return; }
-    createImageBitmap(file, { imageOrientation: 'from-image' }).then(function (bmp) {
-      var scale = Math.min(1, MAX_SIDE / Math.max(bmp.width, bmp.height));
+    showPreview(file, file.size > maxBytes ? ' — it will be reduced to ' + Math.round(maxBytes / 1048576) + ' MB when you register' : '');
+  }
+
+  function encode(bmp, side, quality) {
+    return new Promise(function (resolve) {
+      var scale = Math.min(1, side / Math.max(bmp.width, bmp.height));
       var canvas = document.createElement('canvas');
       canvas.width = Math.round(bmp.width * scale);
       canvas.height = Math.round(bmp.height * scale);
@@ -97,15 +94,41 @@
       ctx.fillStyle = '#fff';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(bmp, 0, 0, canvas.width, canvas.height);
-      canvas.toBlob(function (blob) {
-        if (!blob) { showPreview(file); return; }
+      canvas.toBlob(resolve, 'image/jpeg', quality);
+    });
+  }
+
+  function handlePhoto(file) {
+    if (!file) return;
+    if (!/^image\//.test(file.type)) {
+      clearPhoto('Please choose a JPG or PNG photograph.');
+      return;
+    }
+    photoName.textContent = 'Preparing photo…';
+    if (!window.createImageBitmap || !window.DataTransfer) { useOriginal(file); return; }
+    createImageBitmap(file, { imageOrientation: 'from-image' }).then(function (bmp) {
+      var i = 0;
+      var best = null;
+      (function next() {
+        var step = STEPS[i];
+        encode(bmp, step[0], step[1]).then(function (blob) {
+          if (blob && (!best || blob.size < best.size)) best = blob;
+          if (blob && blob.size <= maxBytes) return done(blob);
+          i++;
+          if (i < STEPS.length) return next();
+          if (best) return done(best);
+          useOriginal(file);
+        });
+      })();
+      function done(blob) {
         var resized = new File([blob], 'photo.jpg', { type: 'image/jpeg' });
         setFile(resized);
-        showPreview(resized);
-      }, 'image/jpeg', 0.86);
+        showPreview(resized, file.size > maxBytes ? ' — reduced from ' + (file.size / 1048576).toFixed(1) + ' MB' : '');
+      }
     }).catch(function () {
-      photoName.textContent = 'This photo format cannot be read. Please choose a JPG or PNG.';
-      photo.value = '';
+      // cannot decode here (unusual format or old browser): JPG/PNG can still be reduced on the server
+      if (/^image\/(jpeg|png)$/.test(file.type)) useOriginal(file);
+      else clearPhoto('This photo format cannot be read. Please choose a JPG or PNG.');
     });
   }
 

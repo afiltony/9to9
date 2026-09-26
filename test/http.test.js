@@ -112,21 +112,33 @@ describe('public registration over HTTP', () => {
     assert.match(html, /value="Keepme"/);
   });
 
-  test('a photo over the 1 MB limit is refused with a clear message', async () => {
+  test('a photo over 1 MB is reduced automatically, not refused', async () => {
+    // random pixels barely compress, so this PNG is several MB — like a raw phone photo
+    const { Jimp, JimpMime } = await import('jimp');
+    const img = new Jimp({ width: 1100, height: 1100, color: 0xffffffff });
+    crypto.randomFillSync(img.bitmap.data);
+    const big = await img.getBuffer(JimpMime.png);
+    assert.ok(big.length > 2 * 1024 * 1024, `test image is ${big.length} bytes`);
+
     const c = client();
     const csrf = await c.csrfFrom('/register');
     const fd = new FormData();
     fd.append('_csrf', csrf);
-    for (const [k, v] of Object.entries(validBody({ last_name: 'Bigphoto' }))) fd.append(k, v);
-    const big = Buffer.alloc(1024 * 1024 + 10, 0);
-    photo.copy(big); // valid PNG header, padded past 1 MB
+    for (const [k, v] of Object.entries(validBody({ mobile: '9222222222' }))) fd.append(k, v);
     fd.append('profile_photo', new Blob([big], { type: 'image/png' }), 'big.png');
     const res = await c.request('/register', { method: 'POST', body: fd });
-    assert.equal(res.status, 422);
-    const html = await res.text();
-    assert.match(html, /too large \(max 1 MB\)/);
-    assert.match(html, /value="Bigphoto"/);
-    assert.match(html, /max 1 MB/);
+    assert.equal(res.status, 303, 'registration succeeds');
+
+    const p = await one('SELECT profile_photo_path FROM participants WHERE mobile = ?', ['9222222222']);
+    assert.match(p.profile_photo_path, /\.jpg$/);
+    const { config } = await import('../src/config.js');
+    const stored = (await import('node:fs')).statSync(`${config.storageDir}/${p.profile_photo_path}`).size;
+    assert.ok(stored <= 1024 * 1024, `stored photo is ${stored} bytes`);
+  });
+
+  test('the registration page explains that large photos are reduced', async () => {
+    const html = await (await client().request('/register')).text();
+    assert.match(html, /Large photos are reduced to 1 MB automatically/);
   });
 
   test('a non-image upload is rejected', async () => {

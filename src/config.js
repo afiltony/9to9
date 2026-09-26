@@ -41,5 +41,7 @@ export const config = {
     connectionLimit: Number(env.DB_POOL_SIZE || 10),
   },
   storageDir: path.resolve(ROOT, env.STORAGE_DIR || 'storage'),
+  // stored photos are shrunk to fit this; uploads up to maxUploadBytes are accepted and shrunk
   maxPhotoBytes: Number(env.MAX_PHOTO_KB || 1024) * 1024,
+  maxUploadBytes: Number(env.MAX_UPLOAD_MB || 15) * 1024 * 1024,
 };
