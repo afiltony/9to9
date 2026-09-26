@@ -1,0 +1,37 @@
+<%- include('partials/head') %>
+<section class="page-hero" data-letters="about">
+  <div class="container">
+    <span class="eyebrow"><%= content.hero_kicker %></span>
+    <h1>About 9 TO 9 Meet</h1>
+    <p><%= content.hero_theme %></p>
+  </div>
+</section>
+<div class="section">
+  <div class="container">
+    <div class="grid cols-2" style="align-items:center;gap:48px">
+      <div>
+        <h2><%= content.intro_title %></h2>
+        <p class="lead"><%= content.intro_text %></p>
+        <dl class="kv" style="margin:24px 0">
+          <dt>When</dt><dd><%= fmt.dayLabel(event.start_at) %>, <%= fmt.time(event.start_at) %> – <%= fmt.dayLabel(event.end_at) %>, <%= fmt.time(event.end_at) %></dd>
+          <% if (event.venue) { %><dt>Where</dt><dd><%= event.venue %></dd><% } %>
+          <% if (event.contact_phone) { %><dt>Registration help</dt><dd><a href="tel:<%= event.contact_phone.replace(/\s/g, '') %>"><%= event.contact_phone %></a></dd><% } %>
+        </dl>
+        <% if (content.organizers) { %><p class="muted"><%= content.organizers %></p><% } %>
+        <div class="row" style="margin-top:20px">
+          <% if (state.open) { %><a class="btn" href="/register">Register now</a><% } %>
+          <a class="btn outline" href="/schedule">View schedule</a>
+        </div>
+      </div>
+      <div class="hero-visual" style="order:0;width:min(400px,100%)">
+        <img src="<%= event.hero_image_path ? '/media/' + event.hero_image_path : '/static/img/poster.jpg' %>" alt="9 TO 9 Meet event poster" loading="lazy" width="900" height="1181">
+      </div>
+    </div>
+    <div class="grid cols-4" style="margin-top:56px">
+      <% const icons = ['flame', 'music', 'users', 'sparkle']; content.features.forEach((f, i) => { %>
+        <article class="feature"><div class="icon"><%- include('partials/icon', { name: icons[i % 4] }) %></div><h3><%= f.title %></h3><p><%= f.text %></p></article>
+      <% }) %>
+    </div>
+  </div>
+</div>
+<%- include('partials/foot') %>

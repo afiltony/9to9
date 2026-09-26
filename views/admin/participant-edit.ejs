@@ -1,0 +1,41 @@
+<%- include('../partials/admin-head') %>
+<p class="small"><a href="/admin/participants/<%= p.id %>">← <%= p.registration_number %></a></p>
+<div class="page-title"><div><h1>Edit participant</h1><div class="sub"><%= p.registration_number %> · changes are recorded in the audit history</div></div></div>
+<% if (message) { %><div class="alert error" role="alert"><%= message %></div><% } %>
+<form method="post" action="/admin/participants/<%= p.id %>/edit" enctype="multipart/form-data">
+  <input type="hidden" name="_csrf" value="<%= csrf() %>">
+  <% for (const section of sections) { %>
+    <section class="card">
+      <h2><%= section.title %></h2>
+      <div class="form-row">
+      <% for (const f of section.fields) { const v = values[f.name] ?? ''; const err = errors[f.name]; const id = 'e_' + f.name; %>
+        <div class="field<%= err ? ' has-error' : '' %>">
+          <% if (f.type === 'checkbox') { %>
+            <label class="check" style="margin-top:28px"><input type="checkbox" name="<%= f.name %>" <%= v === 'on' ? 'checked' : '' %>> <%= f.label %></label>
+          <% } else if (f.type === 'photo') { %>
+            <label for="<%= id %>">Replace photograph</label>
+            <input type="file" name="profile_photo" id="<%= id %>" accept="image/jpeg,image/png">
+            <div class="help">Leave empty to keep the current photo. JPG or PNG.</div>
+          <% } else { %>
+            <label for="<%= id %>"><%= f.label %><% if (f.required) { %> <span class="req">*</span><% } %></label>
+            <% if (f.type === 'select') { %>
+              <select name="<%= f.name %>" id="<%= id %>"><option value="">—</option><% for (const o of f.options) { %><option <%= v === o ? 'selected' : '' %>><%= o %></option><% } %></select>
+            <% } else if (f.type === 'textarea') { %>
+              <textarea name="<%= f.name %>" id="<%= id %>" rows="2"><%= v %></textarea>
+            <% } else { %>
+              <input type="<%= f.type === 'tel' ? 'tel' : f.type %>" name="<%= f.name %>" id="<%= id %>" value="<%= v %>">
+              <% if (f.countryCode) { %><div class="help">10-digit Indian number, or +country code for others.</div><% } %>
+            <% } %>
+          <% } %>
+          <% if (err) { %><div class="error-text"><%= err %></div><% } %>
+        </div>
+      <% } %>
+      </div>
+    </section>
+  <% } %>
+  <div class="actions" style="margin-top:18px">
+    <button class="btn" type="submit" data-loading-text="Saving…">Save changes</button>
+    <a class="btn outline" href="/admin/participants/<%= p.id %>">Cancel</a>
+  </div>
+</form>
+<%- include('../partials/admin-foot') %>

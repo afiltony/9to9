@@ -1,0 +1,25 @@
+<%- include('../partials/admin-head') %>
+<% const v = values; const err = (k) => errors[k] ? `<div class="error-text">${errors[k]}</div>` : ''; const fe = (k) => errors[k] ? ' has-error' : ''; %>
+<p class="small"><a href="/admin/users">← Users</a></p>
+<div class="page-title"><div><h1><%= user ? 'Edit user' : 'New user' %></h1></div></div>
+<form class="card" method="post" action="/admin/users/<%= user ? user.id : 'new' %>" style="max-width:720px">
+  <input type="hidden" name="_csrf" value="<%= csrf() %>">
+  <div class="form-row">
+    <div class="field<%= fe('name') %>"><label for="u-name">Name</label><input id="u-name" name="name" value="<%= v.name || '' %>" required><%- err('name') %></div>
+    <div class="field<%= fe('email') %>"><label for="u-email">Email (login)</label><input id="u-email" type="email" name="email" value="<%= v.email || '' %>" required autocomplete="off"><%- err('email') %></div>
+  </div>
+  <div class="field<%= fe('role') %>">
+    <span class="label">Role</span>
+    <% for (const r of roles) { %>
+      <label class="check" style="margin-bottom:8px"><input type="radio" name="role" value="<%= r %>" <%= v.role === r ? 'checked' : '' %> <%= r === 'SUPER_ADMIN' && admin.role !== 'SUPER_ADMIN' ? 'disabled' : '' %>>
+        <span><strong><%= r.replace(/_/g, ' ') %></strong><br><span class="small muted"><%= roleInfo[r] %></span></span></label>
+    <% } %>
+    <%- err('role') %>
+  </div>
+  <div class="field<%= fe('password') %>"><label for="u-pw"><%= user ? 'New password (leave empty to keep)' : 'Password' %></label>
+    <input id="u-pw" type="password" name="password" minlength="10" autocomplete="new-password" <%= user ? '' : 'required' %>><%- err('password') %>
+    <div class="help">At least 10 characters. Share it with the person directly, not by group chat.</div></div>
+  <label class="check" style="margin-bottom:18px"><input type="checkbox" name="active" <%= v.active ? 'checked' : '' %>> Account active</label>
+  <div class="actions"><button class="btn" type="submit">Save</button><a class="btn outline" href="/admin/users">Cancel</a></div>
+</form>
+<%- include('../partials/admin-foot') %>

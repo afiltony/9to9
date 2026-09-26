@@ -1,0 +1,75 @@
+<%
+  const theme = (content && content.theme) || {};
+  const nav = [
+    { group: null, items: [
+      { href: '/admin', label: 'Dashboard', icon: 'home', perm: 'participants.view', exact: true },
+      { href: '/admin/participants', label: 'Participants', icon: 'users', perm: 'participants.view' },
+      { href: '/admin/checkin', label: 'Check-in', icon: 'qr', perm: 'checkin.perform', also: '/checkin' },
+      { href: '/admin/documents', label: 'Print cards', icon: 'printer', perm: 'documents.print' },
+      { href: '/admin/reports', label: 'Reports', icon: 'chart', perm: 'reports.view' },
+    ] },
+    { group: 'Event', items: [
+      { href: '/admin/settings', label: 'Event & settings', icon: 'settings', perm: 'event.manage' },
+      { href: '/admin/activities', label: 'Activities', icon: 'grid', perm: 'event.manage' },
+      { href: '/admin/slots', label: 'Time slots', icon: 'clock', perm: 'event.manage' },
+    ] },
+    { group: 'Administration', items: [
+      { href: '/admin/users', label: 'Users & roles', icon: 'shield', perm: 'users.manage' },
+      { href: '/admin/audit', label: 'Audit log', icon: 'log', perm: 'audit.view' },
+    ] },
+  ];
+  const isActive = (it) => it.exact ? path === it.href : (path.startsWith(it.href) || (it.also && path.startsWith(it.also)));
+  const initials = admin ? admin.name.split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase() : '';
+%><!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <title><%= typeof title !== 'undefined' && title ? title + ' · ' : '' %>9 TO 9 Admin</title>
+  <meta name="theme-color" content="<%= theme.primary || '#1c2a5e' %>">
+  <link rel="stylesheet" href="/static/css/app.css">
+  <% if (theme.primary) { %><style>:root { --primary: <%= theme.primary %>; --secondary: <%= theme.secondary %>; }</style><% } %>
+  <script src="/static/js/boot.js"></script>
+</head>
+<body class="admin-body">
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="admin-shell">
+  <aside class="sidebar" id="sidebar" aria-label="Admin navigation">
+    <a class="brand" href="/admin">
+      <span class="brand-mark">9·9</span>
+      <span class="brand-text"><strong>9 TO 9 MEET</strong><span>Admin</span></span>
+    </a>
+    <ul class="side-nav">
+      <% for (const g of nav) {
+           const items = g.items.filter((it) => can(it.perm));
+           if (!items.length) continue; %>
+        <% if (g.group) { %><li class="group"><%= g.group %></li><% } %>
+        <% for (const it of items) { %>
+          <li><a href="<%= it.href %>"<%- isActive(it) ? ' aria-current="page"' : '' %>><%- include('icon', { name: it.icon }) %><%= it.label %></a></li>
+        <% } %>
+      <% } %>
+      <li class="group">Site</li>
+      <li><a href="/" target="_blank" rel="noopener"><%- include('icon', { name: 'arrow' }) %>View public site</a></li>
+    </ul>
+  </aside>
+  <div>
+    <header class="topbar">
+      <button class="menu-btn" type="button" data-sidebar-toggle aria-controls="sidebar" aria-expanded="false"><%- include('icon', { name: 'menu' }) %><span class="sr-only">Menu</span></button>
+      <% if (event) { %><span class="event-pill" title="Current event"><%- include('icon', { name: 'calendar' }) %><%= event.event_code %> · <%= fmt.shortDate(event.start_at) %>–<%= fmt.shortDate(event.end_at) %></span><% } %>
+      <% if (can('participants.view')) { %>
+        <form class="search" method="get" action="/admin/participants" role="search">
+          <input type="search" name="q" placeholder="Search name, reg. no, mobile…" aria-label="Search participants">
+        </form>
+      <% } %>
+      <div class="profile">
+        <span class="avatar" aria-hidden="true"><%= initials %></span>
+        <span class="who"><%= admin.name %><span><%= admin.role.replace(/_/g, ' ').toLowerCase() %></span></span>
+        <form method="post" action="/admin/logout" class="inline-form">
+          <input type="hidden" name="_csrf" value="<%= csrf() %>">
+          <button class="btn sm outline" type="submit" title="Log out"><%- include('icon', { name: 'logout' }) %><span class="sr-only">Log out</span></button>
+        </form>
+      </div>
+    </header>
+    <main class="admin-main" id="main">
+      <% if (flash) { %><div class="alert <%= flash.type %>" role="status"><%= flash.text %></div><% } %>

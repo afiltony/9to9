@@ -1,0 +1,41 @@
+<%- include('../partials/admin-head') %>
+<%
+  const v = values;
+  const err = (k) => errors[k] ? `<div class="error-text">${errors[k]}</div>` : '';
+  const on = (x) => x === 1 || x === '1' || x === true || x === 'on';
+%>
+<p class="small"><a href="/admin/activities">← Activities</a></p>
+<div class="page-title"><div><h1><%= activity ? activity.name : 'New activity' %></h1></div></div>
+
+<form class="card" method="post" action="/admin/activities/<%= activity ? activity.id : 'new' %>" enctype="multipart/form-data">
+  <input type="hidden" name="_csrf" value="<%= csrf() %>">
+  <div class="form-row">
+    <div class="field<%= errors.name ? ' has-error' : '' %>"><label for="a-name">Activity name <span class="req">*</span></label><input id="a-name" name="name" value="<%= v.name || '' %>" required maxlength="255"><%- err('name') %></div>
+    <div class="field"><label for="a-venue">Venue</label><input id="a-venue" name="venue" value="<%= v.venue || '' %>" maxlength="255"></div>
+  </div>
+  <div class="field"><label for="a-desc">Short description</label><textarea id="a-desc" name="description" rows="2" maxlength="2000"><%= v.description || '' %></textarea><div class="help">Shown on the activity cards on the website.</div></div>
+  <div class="form-row three">
+    <div class="field<%= errors.capacity ? ' has-error' : '' %>"><label for="a-cap">Capacity per slot</label><input id="a-cap" name="capacity" type="number" min="0" value="<%= v.capacity ?? '' %>" placeholder="No limit"><%- err('capacity') %><div class="help">Default for new slots.</div></div>
+    <div class="field<%= errors.sort_order ? ' has-error' : '' %>"><label for="a-order">Display order</label><input id="a-order" name="sort_order" type="number" value="<%= v.sort_order ?? 0 %>"><%- err('sort_order') %></div>
+    <div class="field<%= errors.image ? ' has-error' : '' %>"><label for="a-img">Image</label><input id="a-img" name="image" type="file" accept="image/jpeg,image/png"><%- err('image') %>
+      <% if (activity && activity.image_path) { %><label class="check small" style="margin-top:6px"><input type="checkbox" name="remove_image"> Remove current image</label><% } %></div>
+  </div>
+  <label class="check" style="margin-bottom:10px"><input type="checkbox" name="requires_slot" <%= on(v.requires_slot) ? 'checked' : '' %>> <span><strong>Participants book time slots</strong><br><span class="small muted">Untick for open-to-all items such as Holy Qurbana or the Selfie Point.</span></span></label>
+  <label class="check" style="margin-bottom:10px"><input type="checkbox" name="active" <%= on(v.active) ? 'checked' : '' %>> <span><strong>Active</strong><br><span class="small muted">Inactive activities are hidden from the website and cannot be booked.</span></span></label>
+  <% if (activity) { %><label class="check" style="margin-bottom:18px"><input type="checkbox" name="apply_capacity"> <span>Also apply this capacity to all existing slots <span class="small muted">(skips slots that already have more bookings)</span></span></label><% } %>
+  <div class="actions"><button class="btn" type="submit">Save activity</button><a class="btn outline" href="/admin/activities">Cancel</a></div>
+</form>
+
+<% if (activity) { %>
+  <section class="card">
+    <div class="card-title"><h2>Time slots</h2></div>
+    <%- include('slot-table', { slots, back: 'activity', activityId: activity.id }) %>
+    <h3 style="margin-top:22px">Add a slot</h3>
+    <%- include('slot-form', { slot: null, activityId: activity.id, back: 'activity', defaultDate: slots.length ? slots.at(-1).start_at.slice(0, 10) : event.start_at.slice(0, 10), defaultCapacity: activity.capacity }) %>
+  </section>
+  <form method="post" action="/admin/activities/<%= activity.id %>/delete" data-confirm="Delete this activity and its slots? This only works when nobody has booked it." style="margin-top:12px">
+    <input type="hidden" name="_csrf" value="<%= csrf() %>">
+    <button class="btn sm danger" type="submit">Delete activity</button>
+  </form>
+<% } %>
+<%- include('../partials/admin-foot') %>

@@ -1,0 +1,15 @@
+<%- include('partials/head') %>
+<div class="section">
+  <div class="container narrow center">
+    <div class="card" style="padding:40px 28px">
+      <div class="feature" style="padding:0;border:0;display:inline-block;background:none"><div class="icon" style="margin:0 auto 16px"><%- include('partials/icon', { name: 'shield' }) %></div></div>
+      <h1><%= title %></h1>
+      <p class="lead" style="margin:0 auto 24px"><%= message %></p>
+      <div class="row" style="justify-content:center">
+        <a class="btn outline" href="/" data-back>Go back</a>
+        <a class="btn" href="/">Home</a>
+      </div>
+    </div>
+  </div>
+</div>
+<%- include('partials/foot') %>

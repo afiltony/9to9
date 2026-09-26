@@ -1,0 +1,36 @@
+<div class="table-wrap">
+  <table>
+    <thead><tr><% if (!activityId) { %><th>Activity</th><% } %><th>Day</th><th>Time</th><th>Detail</th><th class="num">Capacity</th><th class="num">Booked</th><th class="num">Available</th><th class="num">Checked in</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+      <% if (!slots.length) { %><tr><td colspan="10"><div class="empty small">No slots yet.</div></td></tr><% } %>
+      <% for (const s of slots) {
+           const full = s.capacity != null && s.registration_count >= s.capacity;
+           const status = s.status === 'closed' ? 'closed' : full ? 'full' : 'open'; %>
+        <tr>
+          <% if (!activityId) { %><td><a href="/admin/activities/<%= s.activity_id %>"><%= s.activity_name %></a></td><% } %>
+          <td style="white-space:nowrap"><%= fmt.dayLabel(s.start_at) %></td>
+          <td style="white-space:nowrap"><%= fmt.timeRange(s.start_at, s.end_at) %></td>
+          <td class="small"><%= s.label || '' %></td>
+          <td class="num"><%= s.capacity ?? '∞' %></td>
+          <td class="num"><a href="/admin/reports/roster?slot=<%= s.id %>"><%= s.registration_count %></a></td>
+          <td class="num"><%= s.capacity == null ? '—' : Math.max(0, s.capacity - s.registration_count) %></td>
+          <td class="num"><%= s.checked_in %></td>
+          <td><span class="badge <%= status %>"><%= status %></span></td>
+          <td>
+            <details>
+              <summary class="btn sm outline" style="list-style:none">Edit</summary>
+              <div class="card tight" style="position:absolute;right:28px;z-index:10;width:min(560px,90vw);box-shadow:var(--shadow)">
+                <%- include('slot-form', { slot: s, activityId: s.activity_id, back, defaultDate: null, defaultCapacity: null }) %>
+                <form method="post" action="/admin/slots/<%= s.id %>/delete" data-confirm="Delete this slot? Only possible when nobody has booked it." style="margin-top:8px">
+                  <input type="hidden" name="_csrf" value="<%= csrf() %>">
+                  <input type="hidden" name="back" value="<%= back === 'activity' ? '/admin/activities/' + s.activity_id : '/admin/slots' %>">
+                  <button class="btn sm danger" type="submit">Delete slot</button>
+                </form>
+              </div>
+            </details>
+          </td>
+        </tr>
+      <% } %>
+    </tbody>
+  </table>
+</div>

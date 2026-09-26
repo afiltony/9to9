@@ -1,0 +1,49 @@
+<%- include('../partials/admin-head') %>
+<div class="checkin-wrap">
+  <div class="page-title" style="justify-content:center;text-align:center"><div><h1>Scan participant</h1><div class="sub">Scan the QR code on the card, or search at the desk</div></div></div>
+
+  <section class="card">
+    <div class="field">
+      <label for="station">I am checking people in at</label>
+      <select id="station">
+        <option value="EVENT">Reception — hand over cards / event entry</option>
+        <% for (const a of schedule) { if (!a.slots.length) continue; %>
+          <optgroup label="<%= a.name %>">
+            <% for (const s of a.slots) { %><option value="<%= s.id %>"><%= a.name %> · <%= fmt.dayLabel(s.start_at).split(' ').slice(1).join(' ') %> <%= fmt.timeRange(s.start_at, s.end_at) %></option><% } %>
+          </optgroup>
+        <% } %>
+      </select>
+    </div>
+    <div id="reader" aria-label="Camera preview"></div>
+    <p class="muted small center" id="scan-status" style="margin:10px 0 0" aria-live="polite">Starting camera…</p>
+    <div class="alert error" id="scan-error" hidden style="margin-top:10px"></div>
+    <p class="center" style="margin:10px 0 0"><button class="btn sm outline" type="button" id="start-camera" hidden><%- include('../partials/icon', { name: 'camera' }) %>Start camera</button></p>
+  </section>
+
+  <section class="card">
+    <h2>Find without QR</h2>
+    <p class="muted small">Participant forgot their number? Search by registration number, mobile or name.</p>
+    <form method="post" action="/admin/checkin/lookup" class="row" style="flex-wrap:nowrap">
+      <input type="hidden" name="_csrf" value="<%= csrf() %>">
+      <input type="hidden" name="station" id="lookup-station" value="<%= typeof station !== 'undefined' && station ? station : 'EVENT' %>">
+      <input type="search" name="registration_number" value="<%= q %>" placeholder="125, 9TO9-000125, mobile or name" autocomplete="off" required aria-label="Registration number, mobile or name">
+      <button class="btn" type="submit"><%- include('../partials/icon', { name: 'search' }) %><span class="sr-only">Find</span></button>
+    </form>
+    <% if (results) { %>
+      <div style="margin-top:14px">
+        <% if (!results.length) { %><div class="alert warning">No registration found for “<%= q %>”.</div><% } else { %>
+          <p class="small muted"><%= results.length %> matches — choose the right person:</p>
+          <% for (const r of results) { %>
+            <a class="booking" href="/checkin/<%= r.qr_token %>?station=<%= typeof station !== 'undefined' && station ? station : 'EVENT' %>" style="text-decoration:none;color:inherit">
+              <div><strong><%= fmt.fullName(r) %></strong><br><span class="xs muted"><%= r.registration_number %> · <%= r.parish || '' %> · <%= r.mobile %></span></div>
+              <span class="badge <%= r.status %>"><%= r.status %></span>
+            </a>
+          <% } %>
+        <% } %>
+      </div>
+    <% } %>
+  </section>
+</div>
+<script src="/static/vendor/html5-qrcode.min.js"></script>
+<script src="/static/js/scanner.js"></script>
+<%- include('../partials/admin-foot') %>

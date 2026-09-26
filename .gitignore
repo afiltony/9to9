@@ -1,0 +1,10 @@
+node_modules/
+.env
+.env.test
+storage/*
+!storage/.gitkeep
+*.log
+
+# source material, not needed by the app
+10419.jpg
+Schedule.docx

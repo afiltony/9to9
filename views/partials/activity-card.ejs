@@ -1,0 +1,24 @@
+<%
+  const pct = total ? Math.round((100 * booked) / total) : 0;
+  const perSlot = a.capacity || (a.slots[0] && a.slots[0].capacity);
+%><article class="activity-card">
+  <div class="activity-media" data-letter="<%= a.name.trim()[0].toLowerCase() %>">
+    <% if (a.image) { %><img src="/media/<%= a.image %>" alt="" loading="lazy"><% } else { %><%- include('icon', { name: fmt.activityIcon(a.name) }) %><% } %>
+    <% if (perSlot) { %><span class="cap-chip"><%= perSlot %> per slot</span><% } %>
+  </div>
+  <div class="activity-body">
+    <h3><%= a.name %></h3>
+    <div class="venue"><%- include('icon', { name: 'pin' }) %><%= a.venue || 'Venue to be announced' %></div>
+    <% if (a.description) { %><p class="small muted"><%= a.description %></p><% } %>
+    <div class="foot">
+      <div class="spread small" style="margin-bottom:6px">
+        <span><strong><%= a.slots.length %></strong> slot<%= a.slots.length === 1 ? '' : 's' %> · <%= openSlots %> with places</span>
+        <% if (total) { %><span class="muted"><%= pct %>% booked</span><% } %>
+      </div>
+      <% if (total) { %><div class="meter <%= pct >= 100 ? 'full' : pct >= 85 ? 'hot' : '' %>" style="--pct:<%= pct %>%" role="img" aria-label="<%= pct %>% of places booked"><span></span></div><% } %>
+      <div class="row" style="margin-top:14px">
+        <a class="btn sm" href="/activities#a-<%= a.id %>">View slots</a>
+      </div>
+    </div>
+  </div>
+</article>

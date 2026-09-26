@@ -1,0 +1,41 @@
+<%- include('partials/head') %>
+<section class="page-hero" data-letters="contact">
+  <div class="container">
+    <span class="eyebrow">We're here to help</span>
+    <h1>Contact</h1>
+    <p>Questions about registration, your activity slots or collecting your card? Get in touch with the organizers.</p>
+  </div>
+</section>
+<div class="section">
+  <div class="container narrow">
+    <div class="grid cols-2">
+      <% if (event.contact_phone) { %>
+        <a class="card" href="tel:<%= event.contact_phone.replace(/\s/g, '') %>" style="text-decoration:none;color:inherit">
+          <div class="feature" style="padding:0;border:0;background:none"><div class="icon"><%- include('partials/icon', { name: 'phone' }) %></div></div>
+          <h3>Call for registration</h3>
+          <p class="muted" style="margin:0;font-size:1.2rem;font-weight:600;color:var(--primary)"><%= event.contact_phone %></p>
+        </a>
+      <% } %>
+      <% if (event.contact_email) { %>
+        <a class="card" href="mailto:<%= event.contact_email %>" style="text-decoration:none;color:inherit">
+          <div class="feature" style="padding:0;border:0;background:none"><div class="icon"><%- include('partials/icon', { name: 'mail' }) %></div></div>
+          <h3>Email</h3>
+          <p class="muted" style="margin:0;font-weight:600;color:var(--primary)"><%= event.contact_email %></p>
+        </a>
+      <% } %>
+      <div class="card">
+        <div class="feature" style="padding:0;border:0;background:none"><div class="icon"><%- include('partials/icon', { name: 'pin' }) %></div></div>
+        <h3>Venue</h3>
+        <p class="muted" style="margin:0"><%= event.venue || 'To be announced' %></p>
+        <p class="muted small" style="margin:6px 0 0">Reception opens at <%= fmt.time(event.start_at) %> on <%= fmt.dayLabel(event.start_at) %>.</p>
+      </div>
+      <div class="card">
+        <div class="feature" style="padding:0;border:0;background:none"><div class="icon"><%- include('partials/icon', { name: 'file' }) %></div></div>
+        <h3>Lost your registration link?</h3>
+        <p class="muted small" style="margin:0">Call the number above with your name and mobile number. Your card can still be collected at reception.</p>
+      </div>
+    </div>
+    <% if (content.organizers) { %><p class="muted center" style="margin-top:32px"><%= content.organizers %></p><% } %>
+  </div>
+</div>
+<%- include('partials/foot') %>

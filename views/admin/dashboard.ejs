@@ -1,0 +1,72 @@
+<%- include('../partials/admin-head') %>
+<div class="page-title">
+  <div>
+    <h1>Dashboard</h1>
+    <div class="sub"><%= event.name %> · <%= fmt.eventRange(event) %> · registration <span class="badge <%= state.open ? 'open' : 'closed' %>"><%= state.open ? 'open' : 'closed' %></span></div>
+  </div>
+  <div class="actions">
+    <% if (can('documents.print')) { %><a class="btn sm" href="/admin/documents"><%- include('../partials/icon', { name: 'printer' }) %>Print cards</a><% } %>
+    <a class="btn sm outline" href="/admin/checkin"><%- include('../partials/icon', { name: 'qr' }) %>Check-in</a>
+  </div>
+</div>
+
+<div class="metrics">
+  <a class="metric accent" href="/admin/participants"><div class="k">Total registrations</div><div class="n"><%= stats.total.toLocaleString('en-IN') %></div><div class="s">incl. cancelled</div></a>
+  <a class="metric" href="/admin/participants?status=approved"><div class="k">Approved</div><div class="n"><%= stats.approved.toLocaleString('en-IN') %></div></a>
+  <a class="metric" href="/admin/participants?status=pending"><div class="k">Pending</div><div class="n"><%= stats.pending %></div><% if (stats.pending) { %><div class="s">waiting for approval</div><% } %></a>
+  <a class="metric" href="/admin/participants?checked_in=yes"><div class="k">Checked in</div><div class="n"><%= stats.checkedIn.toLocaleString('en-IN') %></div><div class="s"><%= stats.approved ? Math.round(100 * stats.checkedIn / stats.approved) : 0 %>% of approved</div></a>
+  <a class="metric" href="/admin/documents"><div class="k">Cards printed</div><div class="n"><%= stats.printed %></div><div class="s"><%= Math.max(0, stats.approved - stats.printed) %> still to print</div></a>
+  <a class="metric" href="/admin/participants?accommodation=yes"><div class="k">Accommodation</div><div class="n"><%= stats.accommodation %></div></a>
+  <a class="metric" href="/admin/participants?food=yes"><div class="k">Food</div><div class="n"><%= stats.food %></div></a>
+  <a class="metric" href="/admin/participants?status=cancelled"><div class="k">Cancelled / rejected</div><div class="n"><%= stats.cancelled %></div></a>
+</div>
+
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr));align-items:start">
+  <section class="card">
+    <div class="card-title"><h2>Activity capacity</h2><a class="small" href="/admin/reports/slots">Slot report →</a></div>
+    <% for (const a of schedule) { if (!a.slots.length) continue;
+         const cap = a.slots.reduce((s, x) => s + (x.capacity || 0), 0);
+         const booked = a.slots.reduce((s, x) => s + x.booked, 0);
+         const pct = cap ? Math.min(100, Math.round(100 * booked / cap)) : 0; %>
+      <details class="occ-row" style="display:block">
+        <summary style="display:grid;grid-template-columns:minmax(0,1fr) 110px;gap:4px 12px;cursor:pointer;list-style:none">
+          <span class="lbl"><strong><%= a.name %></strong> <span class="muted xs"><%= a.slots.length %> slots</span></span>
+          <span class="num"><%= booked %> / <%= cap || '∞' %></span>
+          <span class="meter <%= pct >= 100 ? 'full' : pct >= 85 ? 'hot' : '' %>" style="--pct:<%= pct %>%;grid-column:1/-1"><span></span></span>
+        </summary>
+        <div style="padding:8px 0 4px 12px">
+          <% for (const s of a.slots) { const sp = s.capacity ? Math.min(100, Math.round(100 * s.booked / s.capacity)) : 0; %>
+            <div class="occ-row">
+              <span class="lbl small"><%= fmt.dayLabel(s.start_at).split(' ').slice(1).join(' ') %> · <%= fmt.timeRange(s.start_at, s.end_at) %></span>
+              <span class="num small"><a href="/admin/reports/roster?slot=<%= s.id %>"><%= s.booked %> / <%= s.capacity ?? '∞' %></a></span>
+              <span class="meter <%= sp >= 100 ? 'full' : sp >= 85 ? 'hot' : '' %>" style="--pct:<%= sp %>%"><span></span></span>
+            </div>
+          <% } %>
+        </div>
+      </details>
+    <% } %>
+  </section>
+
+  <div>
+    <section class="card">
+      <div class="card-title"><h2>Registrations per day</h2></div>
+      <% if (!daily.length) { %><div class="empty small">No registrations yet.</div><% } else { const max = Math.max(...daily.map((d) => Number(d.n))); %>
+        <div class="bars" role="img" aria-label="Registrations per day for the last <%= daily.length %> days">
+          <% for (const d of daily) { %><div class="b" style="height:<%= Math.max(4, Math.round(100 * d.n / max)) %>%" title="<%= d.day %>: <%= d.n %>"><span><%= d.n %></span></div><% } %>
+        </div>
+        <div class="spread xs muted" style="margin-top:6px"><span><%= fmt.shortDate(daily[0].day + ' 00:00') %></span><span><%= fmt.shortDate(daily.at(-1).day + ' 00:00') %></span></div>
+      <% } %>
+    </section>
+    <section class="card">
+      <div class="card-title"><h2>Latest registrations</h2><a class="small" href="/admin/participants">All →</a></div>
+      <% if (!recent.length) { %><div class="empty small">Nobody has registered yet.</div><% } %>
+      <% for (const r of recent) { %>
+        <div class="booking">
+          <div><a href="/admin/participants/<%= r.id %>"><strong><%= r.first_name %> <%= r.last_name || '' %></strong></a><br><span class="muted xs"><%= r.registration_number %> · <%= r.parish || '' %></span></div>
+          <span class="badge <%= r.status %>"><%= r.status %></span>
+        </div>
+      <% } %>
+    </section>
+  </div>
+</div>
+<%- include('../partials/admin-foot') %>

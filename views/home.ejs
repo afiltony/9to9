@@ -1,0 +1,79 @@
+<%- include('partials/head') %>
+<% const heroImg = event.hero_image_path ? `/media/${event.hero_image_path}` : '/static/img/poster.jpg'; %>
+<section class="hero" style="--hero-img: url('<%= heroImg %>')" aria-labelledby="hero-title">
+  <div class="container hero-copy">
+    <h1 class="wordmark" id="hero-title">9 to 9 meet</h1>
+    <p class="tagline">24 Hour God Experience</p>
+    <p class="theme"><%= content.hero_kicker %> · <%= content.hero_theme %></p>
+    <div class="hero-when" aria-label="Event dates">
+      <div class="when-block"><strong><%= fmt.shortDate(event.start_at).toUpperCase() %></strong><span><%= fmt.time(event.start_at) %></span></div>
+      <div class="arrow" aria-hidden="true">→</div>
+      <div class="when-block"><strong><%= fmt.shortDate(event.end_at).toUpperCase() %></strong><span><%= fmt.time(event.end_at) %></span></div>
+    </div>
+    <div class="row">
+      <% if (state.open) { %><a class="btn white lg" href="/register">Register now</a><% } %>
+      <a class="btn light lg" href="/schedule">View schedule</a>
+    </div>
+    <% if (!state.open) { %><p class="alert warning" style="margin:18px auto 0;display:inline-flex"><%= state.reason %></p><% } %>
+    <div class="hero-meta">
+      <% if (event.venue) { %><span class="row" style="gap:6px"><span style="width:16px;display:inline-flex"><%- include('partials/icon', { name: 'pin' }) %></span><%= event.venue %></span><% } %>
+      <% if (event.contact_phone) { %><span class="row" style="gap:6px"><span style="width:16px;display:inline-flex"><%- include('partials/icon', { name: 'phone' }) %></span><%= event.contact_phone %></span><% } %>
+    </div>
+  </div>
+  <a class="hero-scroll" href="#hello" aria-label="Scroll to introduction"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></a>
+</section>
+
+<section class="section" id="hello" aria-labelledby="t-hello">
+  <div class="container">
+    <%- include('partials/stitle', { title: 'hello', id: 't-hello', sub: content.intro_title }) %>
+    <p class="intro-text"><%= content.intro_text %></p>
+    <div class="circles">
+      <% const featureIcons = ['flame', 'music', 'users', 'sparkle']; %>
+      <% content.features.forEach((f, i) => { %>
+        <div class="circle-item">
+          <div class="c"><%- include('partials/icon', { name: featureIcons[i % 4] }) %></div>
+          <h3><%= f.title %></h3>
+          <p><%= f.text %></p>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+</section>
+
+<section class="section band" aria-labelledby="t-exp">
+  <div class="container">
+    <%- include('partials/stitle', { kicker: 'explore the', title: 'experience', id: 't-exp' }) %>
+    <p class="intro-text" style="margin-bottom:36px">Places are limited and booked when you register — first come, first served.</p>
+    <div class="grid cols-3">
+      <% for (const a of bookable.slice(0, 6)) {
+           const total = a.slots.reduce((s, x) => s + (x.capacity || 0), 0);
+           const booked = a.slots.reduce((s, x) => s + x.booked, 0);
+           const openSlots = a.slots.filter((x) => x.open && !x.full).length; %>
+        <%- include('partials/activity-card', { a, total, booked, openSlots }) %>
+      <% } %>
+    </div>
+    <div class="center" style="margin-top:32px"><a class="btn outline" href="/activities">See all activities</a></div>
+  </div>
+</section>
+
+<section class="section band-dark" data-letters="9 to 9" aria-labelledby="t-how">
+  <div class="container narrow center">
+    <%- include('partials/stitle', { kicker: 'how it', title: 'works', id: 't-how', dark: true }) %>
+    <p class="lead" style="margin:0 auto 32px;color:rgb(255 255 255 / 80%)">Register online and choose your activity slots. Your printed participant card — with your photo and QR code — is handed to you at the reception desk when you arrive.</p>
+    <div class="grid cols-3" style="text-align:left;margin-bottom:34px">
+      <div class="card tight"><strong>1. Register</strong><p class="muted small" style="margin:4px 0 0">Your details, photo and emergency contact — about five minutes.</p></div>
+      <div class="card tight"><strong>2. Book slots</strong><p class="muted small" style="margin:4px 0 0">Choose from the activities while places last.</p></div>
+      <div class="card tight"><strong>3. Collect your card</strong><p class="muted small" style="margin:4px 0 0">Give your registration number at reception on <%= fmt.shortDate(event.start_at) %>.</p></div>
+    </div>
+    <% if (state.open) { %><a class="btn white lg" href="/register">Start registration</a><% } %>
+  </div>
+</section>
+
+<script type="application/ld+json"><%- JSON.stringify({
+  '@context': 'https://schema.org', '@type': 'Event', name: event.name, description: content.intro_text,
+  startDate: event.start_at.replace(' ', 'T') + '+05:30', endDate: event.end_at.replace(' ', 'T') + '+05:30',
+  eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode', eventStatus: 'https://schema.org/EventScheduled',
+  location: event.venue ? { '@type': 'Place', name: event.venue } : undefined,
+  image: [baseUrl + heroImg], url: baseUrl + '/',
+}).replace(/</g, '\\u003c') %></script>
+<%- include('partials/foot') %>

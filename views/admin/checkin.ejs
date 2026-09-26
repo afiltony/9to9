@@ -1,0 +1,107 @@
+<%- include('../partials/admin-head') %>
+<div class="checkin-wrap">
+<% const scanNext = '/admin/checkin' + (station ? '?station=' + station : ''); %>
+<% if (!p) { %>
+  <div class="verdict bad" role="alert"><div class="v">INVALID QR CODE</div><span class="s">No registration matches this code. Send the person to the help desk.</span></div>
+  <a class="btn xl gold" href="<%= scanNext %>">Scan next</a>
+<% } else {
+     const approved = p.status === 'approved';
+     const stationBooking = stationSlot ? bookings.find((b) => b.slot_id === stationSlot.id) : null;
+     const atReception = station === 'EVENT';
+     const justCheckedIn = flash && flash.type === 'success';
+     let verdict;
+     if (justCheckedIn) verdict = { cls: 'ok', text: '✓ CHECK-IN SUCCESSFUL', time: flash.text.match(/\d{1,2}:\d{2}/)?.[0], sub: atReception ? 'Card handed over' : (stationSlot ? stationSlot.activity_name : '') };
+     else if (!approved) verdict = { cls: 'bad', text: 'NOT APPROVED', sub: `Registration is ${p.status}. Send to the help desk.` };
+     else if (atReception) verdict = entry
+       ? { cls: 'warn', text: 'ALREADY CHECKED IN', sub: `Entered at ${fmt.time(entry.checked_in_at)} — card already handed over` }
+       : { cls: 'ok', text: 'VALID REGISTRATION ✓', sub: 'Reception · hand over the card' };
+     else if (stationSlot) verdict = !stationBooking
+       ? { cls: 'bad', text: 'NOT BOOKED', sub: `No booking for ${stationSlot.activity_name} ${fmt.timeRange(stationSlot.start_at, stationSlot.end_at)}` }
+       : stationBooking.checked_in_at
+         ? { cls: 'warn', text: 'ALREADY CHECKED IN', sub: `${stationSlot.activity_name} at ${fmt.time(stationBooking.checked_in_at)}` }
+         : { cls: 'ok', text: 'VALID REGISTRATION ✓', sub: `Booked for ${stationSlot.activity_name}` };
+     else verdict = { cls: 'ok', text: 'VALID REGISTRATION ✓', sub: p.registration_number };
+     const canCheckIn = approved && ((atReception && !entry) || (stationBooking && !stationBooking.checked_in_at));
+%>
+  <% if (!justCheckedIn && flash) { %><div class="alert <%= flash.type %>" role="status"><%= flash.text %></div><% } %>
+  <div class="verdict <%= verdict.cls %>" role="status" aria-live="assertive">
+    <div class="v"><%= verdict.text %></div>
+    <% if (verdict.time) { %><div class="time"><%= fmt.time('2000-01-01 ' + verdict.time) %></div><% } %>
+    <span class="s"><%= verdict.sub %></span>
+  </div>
+
+  <section class="card">
+    <div class="person">
+      <% if (p.profile_photo_path) { %><img class="photo" src="/admin/participants/<%= p.id %>/photo" alt="Participant photo — check it matches the person"><% } else { %><div class="photo"></div><% } %>
+      <div>
+        <div class="name"><%= fmt.fullName(p).toUpperCase() %></div>
+        <div class="reg-number" style="font-size:1.3rem;margin:4px 0 6px"><%= p.registration_number %></div>
+        <span class="badge <%= p.status %>"><%= p.status %></span>
+      </div>
+    </div>
+
+    <% if (stationSlot) { %>
+      <dl class="facts">
+        <dt>Activity</dt><dd><%= stationSlot.activity_name.toUpperCase() %><%= stationSlot.label ? ' — ' + stationSlot.label : '' %></dd>
+        <dt>Time</dt><dd><%= fmt.timeRange(stationSlot.start_at, stationSlot.end_at) %></dd>
+        <dt>Venue</dt><dd><%= (stationSlot.venue || '—').toUpperCase() %></dd>
+      </dl>
+    <% } else if (atReception) { %>
+      <dl class="facts">
+        <dt>Printed card</dt>
+        <dd><% if (p.card_printed_at) { %><span class="badge yes">Printed <%= fmt.shortDate(p.card_printed_at) %></span> — find it in the card box<% } else { %><span class="badge warn">Not printed yet</span><% } %></dd>
+        <dt>Parish</dt><dd><%= p.parish || '—' %></dd>
+        <dt>Bookings</dt><dd><%= bookings.length %> activit<%= bookings.length === 1 ? 'y' : 'ies' %></dd>
+      </dl>
+      <% if (!p.card_printed_at && can('documents.print')) { %>
+        <div class="actions" style="margin-top:12px">
+          <a class="btn sm" href="/admin/participants/<%= p.id %>/id-card.pdf" target="_blank" rel="noopener"><%- include('../partials/icon', { name: 'printer' }) %>Print ID card now</a>
+          <a class="btn sm outline" href="/admin/participants/<%= p.id %>/activity-card.pdf" target="_blank" rel="noopener">Activity card</a>
+        </div>
+      <% } %>
+    <% } %>
+
+    <% if (canCheckIn) { %>
+      <form method="post" action="/checkin/<%= p.qr_token %>" style="margin-top:18px">
+        <input type="hidden" name="_csrf" value="<%= csrf() %>">
+        <input type="hidden" name="station" value="<%= station %>">
+        <input type="hidden" name="slot_id" value="<%= stationBooking ? stationBooking.slot_id : '' %>">
+        <button class="btn xl success" type="submit" data-loading-text="Checking in…"><%= atReception ? 'CARD HANDED OVER · CHECK IN' : 'CHECK IN' %></button>
+      </form>
+    <% } %>
+  </section>
+
+  <a class="btn xl gold" href="<%= scanNext %>" style="margin-bottom:16px"><%- include('../partials/icon', { name: 'qr' }) %>Scan next</a>
+
+  <section class="card">
+    <h2>All check-ins</h2>
+    <div class="booking">
+      <div><strong>Reception / event entry</strong><br><span class="xs muted">Card handed over</span></div>
+      <% if (entry) { %><span class="badge yes">In <%= fmt.time(entry.checked_in_at) %></span>
+      <% } else if (approved) { %>
+        <form method="post" action="/checkin/<%= p.qr_token %>" class="inline-form">
+          <input type="hidden" name="_csrf" value="<%= csrf() %>"><input type="hidden" name="station" value="<%= station || '' %>"><input type="hidden" name="slot_id" value="">
+          <button class="btn sm" type="submit">Check in</button>
+        </form>
+      <% } %>
+    </div>
+    <% if (!bookings.length) { %><p class="muted small">No activity bookings.</p><% } %>
+    <% for (const b of bookings) { %>
+      <div class="booking<%= b.current ? ' current' : '' %>">
+        <div>
+          <strong><%= b.activity_name %></strong><% if (b.current) { %> <span class="badge warn">Now</span><% } %><br>
+          <span class="muted xs"><%= fmt.dayLabel(b.start_at) %> · <%= fmt.timeRange(b.start_at, b.end_at) %><%= b.venue ? ' · ' + b.venue : '' %></span>
+        </div>
+        <% if (b.checked_in_at) { %><span class="badge yes">In <%= fmt.time(b.checked_in_at) %></span>
+        <% } else if (approved) { %>
+          <form method="post" action="/checkin/<%= p.qr_token %>" class="inline-form">
+            <input type="hidden" name="_csrf" value="<%= csrf() %>"><input type="hidden" name="station" value="<%= station || '' %>"><input type="hidden" name="slot_id" value="<%= b.slot_id %>">
+            <button class="btn sm" type="submit">Check in</button>
+          </form>
+        <% } %>
+      </div>
+    <% } %>
+  </section>
+<% } %>
+</div>
+<%- include('../partials/admin-foot') %>

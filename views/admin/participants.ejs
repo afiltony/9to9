@@ -1,0 +1,118 @@
+<%- include('../partials/admin-head') %>
+<%
+  const withQs = (extra) => { const p = new URLSearchParams(qs); for (const [k, v] of Object.entries(extra)) { if (v) p.set(k, v); else p.delete(k); } return '/admin/participants?' + p.toString(); };
+  const sortLink = (key, label) => `<a href="${withQs({ sort: key, page: '' })}"${filters.sort === key ? ' aria-sort="ascending" style="color:var(--primary)"' : ''}>${label}${filters.sort === key ? ' ↓' : ''}</a>`;
+  const activeFilters = ['status', 'activity', 'slot', 'parish', 'district', 'organization', 'accommodation', 'food', 'checked_in', 'printed'].filter((k) => filters[k]).length;
+%>
+<div class="page-title">
+  <div><h1>Participants</h1><div class="sub"><%= total.toLocaleString('en-IN') %> found</div></div>
+  <div class="actions">
+    <% if (can('reports.view')) { %><a class="btn sm outline" href="/admin/reports/participants?<%= qs %>&format=xlsx"><%- include('../partials/icon', { name: 'download' }) %>Excel</a>
+    <a class="btn sm outline" href="/admin/reports/participants?<%= qs %>&format=csv">CSV</a><% } %>
+  </div>
+</div>
+
+<form class="card tight" method="get" action="/admin/participants" style="margin-bottom:16px">
+  <div class="filters">
+    <input class="wide" type="search" name="q" value="<%= filters.q %>" placeholder="Search name, reg. no, mobile, email, parish…" aria-label="Search">
+    <select name="status" aria-label="Status">
+      <option value="">Any status</option>
+      <option value="active" <%= filters.status === 'active' ? 'selected' : '' %>>Approved + pending</option>
+      <% for (const s of statuses) { %><option value="<%= s %>" <%= filters.status === s ? 'selected' : '' %>><%= s[0].toUpperCase() + s.slice(1) %></option><% } %>
+    </select>
+    <select name="activity" aria-label="Activity">
+      <option value="">Any activity</option>
+      <% for (const a of schedule) { %><option value="<%= a.id %>" <%= filters.activity === a.id ? 'selected' : '' %>><%= a.name %></option><% } %>
+    </select>
+    <select name="slot" aria-label="Slot">
+      <option value="">Any slot</option>
+      <% for (const a of schedule) { %><optgroup label="<%= a.name %>"><% for (const s of a.slots) { %><option value="<%= s.id %>" <%= filters.slot === s.id ? 'selected' : '' %>><%= a.name %> · <%= fmt.timeRange(s.start_at, s.end_at) %></option><% } %></optgroup><% } %>
+    </select>
+    <input list="dl-parish" name="parish" value="<%= filters.parish %>" placeholder="Parish" aria-label="Parish">
+    <input list="dl-district" name="district" value="<%= filters.district %>" placeholder="District" aria-label="District">
+    <input list="dl-org" name="organization" value="<%= filters.organization %>" placeholder="Organization" aria-label="Organization">
+    <select name="accommodation" aria-label="Accommodation"><option value="">Accommodation: any</option><option value="yes" <%= filters.accommodation === 'yes' ? 'selected' : '' %>>Needs accommodation</option><option value="no" <%= filters.accommodation === 'no' ? 'selected' : '' %>>No accommodation</option></select>
+    <select name="food" aria-label="Food"><option value="">Food: any</option><option value="yes" <%= filters.food === 'yes' ? 'selected' : '' %>>Needs food</option><option value="no" <%= filters.food === 'no' ? 'selected' : '' %>>No food</option></select>
+    <select name="checked_in" aria-label="Checked in"><option value="">Check-in: any</option><option value="yes" <%= filters.checked_in === 'yes' ? 'selected' : '' %>>Checked in</option><option value="no" <%= filters.checked_in === 'no' ? 'selected' : '' %>>Not checked in</option></select>
+    <select name="printed" aria-label="Card printed"><option value="">Card: any</option><option value="yes" <%= filters.printed === 'yes' ? 'selected' : '' %>>Card printed</option><option value="no" <%= filters.printed === 'no' ? 'selected' : '' %>>Card not printed</option></select>
+    <input type="hidden" name="sort" value="<%= filters.sort %>">
+    <div class="row"><button class="btn sm" type="submit">Apply</button><% if (activeFilters || filters.q) { %><a class="small" href="/admin/participants">Clear</a><% } %></div>
+  </div>
+  <datalist id="dl-parish"><% for (const v of options.parishes) { %><option value="<%= v %>"><% } %></datalist>
+  <datalist id="dl-district"><% for (const v of options.districts) { %><option value="<%= v %>"><% } %></datalist>
+  <datalist id="dl-org"><% for (const v of options.organizations) { %><option value="<%= v %>"><% } %></datalist>
+</form>
+
+<form method="post" action="/admin/documents" id="bulk-form" data-download>
+  <input type="hidden" name="_csrf" value="<%= csrf() %>">
+  <input type="hidden" name="back" value="list">
+  <% if (can('documents.print')) { %>
+    <div class="card tight spread" style="margin-bottom:12px">
+      <span class="small"><strong data-selected-count>0</strong> selected — print their cards:</span>
+      <div class="actions">
+        <select name="layout" aria-label="Card layout" style="min-height:36px;width:auto;font-size:var(--fs-sm);padding:4px 10px">
+          <option value="card">Card printer (1 per page)</option>
+          <option value="a4">A4 sheet (9 per page)</option>
+        </select>
+        <button class="btn sm" type="submit" name="kind" value="id">ID cards</button>
+        <button class="btn sm outline" type="submit" name="kind" value="activity">Activity cards</button>
+      </div>
+    </div>
+  <% } %>
+
+  <div class="card" style="padding:4px 8px">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <% if (can('documents.print')) { %><th style="width:32px"><input type="checkbox" data-select-all="ids" aria-label="Select all on this page"></th><% } %>
+            <th><%- sortLink('reg', 'Registration') %></th>
+            <th>Photo</th>
+            <th><%- sortLink('name', 'Name') %></th>
+            <th>Mobile</th>
+            <th><%- sortLink('parish', 'Parish / organization') %></th>
+            <th><%- sortLink('status', 'Status') %></th>
+            <th>Card</th>
+            <th>Check-in</th>
+            <th><%- sortLink('newest', 'Created') %></th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (!rows.length) { %><tr><td colspan="11"><div class="empty"><%- include('../partials/icon', { name: 'search' }) %>No participants match these filters.</div></td></tr><% } %>
+          <% for (const r of rows) { %>
+            <tr>
+              <% if (can('documents.print')) { %><td><input type="checkbox" name="ids" value="<%= r.id %>" aria-label="Select <%= r.registration_number %>"></td><% } %>
+              <td><a href="/admin/participants/<%= r.id %>"><strong><%= r.registration_number %></strong></a></td>
+              <td><% if (r.profile_photo_path) { %><img class="thumb" src="/admin/participants/<%= r.id %>/photo" alt="" loading="lazy"><% } else { %><span class="thumb" style="display:block"></span><% } %></td>
+              <td><a href="/admin/participants/<%= r.id %>"><%= fmt.fullName(r) %></a><div class="xs muted"><%= r.bookings %> slot<%= r.bookings == 1 ? '' : 's' %></div></td>
+              <td><%= r.mobile %></td>
+              <td><%= r.parish || '—' %><div class="xs muted"><%= r.organization || r.district || '' %></div></td>
+              <td><span class="badge <%= r.status %>"><%= r.status %></span></td>
+              <td><span class="badge <%= r.card_printed_at ? 'yes' : '' %>"><%= r.card_printed_at ? 'Printed' : 'Not yet' %></span></td>
+              <td><span class="badge <%= r.checked_in_at ? 'yes' : '' %>"><%= r.checked_in_at ? fmt.time(r.checked_in_at) : '—' %></span></td>
+              <td class="xs muted" style="white-space:nowrap"><%= fmt.shortDate(r.created_at) %><br><%= fmt.time(r.created_at) %></td>
+              <td>
+                <div class="actions" style="flex-wrap:nowrap">
+                  <a class="btn sm outline" href="/admin/participants/<%= r.id %>">View</a>
+                  <% if (can('participants.manage') && r.status === 'pending') { %>
+                    <button class="btn sm success" type="submit" formaction="/admin/participants/<%= r.id %>/status" name="action" value="approve">Approve</button>
+                  <% } %>
+                </div>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</form>
+
+<% if (pages > 1) { %>
+  <nav class="pager" aria-label="Pages">
+    <% if (page > 1) { %><a class="btn sm outline" href="<%= withQs({ page: page - 1 }) %>">← Previous</a><% } %>
+    <span class="small muted">Page <%= page %> of <%= pages %></span>
+    <% if (page < pages) { %><a class="btn sm outline" href="<%= withQs({ page: page + 1 }) %>">Next →</a><% } %>
+  </nav>
+<% } %>
+<%- include('../partials/admin-foot') %>

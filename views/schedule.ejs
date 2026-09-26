@@ -1,0 +1,42 @@
+<%- include('partials/head') %>
+<section class="page-hero" data-letters="schedule">
+  <div class="container">
+    <span class="eyebrow">Programme</span>
+    <h1>Schedule</h1>
+    <p><%= fmt.eventRange(event) %><%= event.venue ? ' · ' + event.venue : '' %>. Activities marked “book” have limited places and are chosen when you register.</p>
+  </div>
+</section>
+<div class="section">
+  <div class="container narrow">
+    <% if (!days.length) { %><div class="empty">The schedule will be published soon.</div><% } %>
+    <% for (const d of days) { %>
+      <section class="timeline-day" aria-labelledby="day-<%= d.date %>">
+        <h2 class="day-label" id="day-<%= d.date %>"><%- include('partials/icon', { name: 'calendar' }) %><%= fmt.dayLabel(d.date + ' 00:00') %></h2>
+        <ol class="timeline">
+          <% for (const g of d.groups) { %>
+            <li>
+              <div class="when"><%= fmt.time(g.start_at) %></div>
+              <div class="items">
+                <% for (const it of g.items) { %>
+                  <div class="tl-item<%= it.activity.requiresSlot ? '' : ' open' %>">
+                    <strong><%= it.label && !it.activity.requiresSlot ? it.activity.name : it.activity.name %></strong>
+                    <% if (it.label) { %><div class="small"><%= it.label %></div><% } %>
+                    <div class="meta"><%= fmt.timeRange(it.start_at, it.end_at) %><%= it.activity.venue ? ' · ' + it.activity.venue : '' %></div>
+                    <div style="margin-top:6px">
+                      <% if (!it.activity.requiresSlot) { %><span class="badge brand">Open to all</span>
+                      <% } else if (!it.open) { %><span class="badge closed">Closed</span>
+                      <% } else if (it.full) { %><span class="badge full">Full</span>
+                      <% } else { %><span class="badge open">Book · <%= it.available == null ? 'open' : it.available + ' left' %></span><% } %>
+                    </div>
+                  </div>
+                <% } %>
+              </div>
+            </li>
+          <% } %>
+        </ol>
+      </section>
+    <% } %>
+    <% if (state.open) { %><div class="center"><a class="btn lg" href="/register">Register and book your slots</a></div><% } %>
+  </div>
+</div>
+<%- include('partials/foot') %>

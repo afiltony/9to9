@@ -1,0 +1,51 @@
+<%- include('partials/head') %>
+<section class="page-hero" data-letters="activities">
+  <div class="container">
+    <span class="eyebrow">Explore the experience</span>
+    <h1>Activities</h1>
+    <p>Choose your slots when you register. Numbers update live — when a slot shows FULL it can no longer be booked.</p>
+  </div>
+</section>
+<div class="section">
+  <div class="container">
+    <% for (const a of schedule) { %>
+      <section class="card" id="a-<%= a.id %>" style="scroll-margin-top:90px">
+        <div class="grid" style="grid-template-columns:auto 1fr;gap:18px;align-items:start">
+          <div class="feature" style="padding:0;border:0"><div class="icon" style="margin:0"><%- include('partials/icon', { name: fmt.activityIcon(a.name) }) %></div></div>
+          <div>
+            <div class="spread" style="align-items:baseline">
+              <h2 style="margin:0"><%= a.name %></h2>
+              <% if (!a.requiresSlot) { %><span class="badge brand">Open to all · no booking</span>
+              <% } else if (a.capacity) { %><span class="badge"><%= a.capacity %> participants per slot</span><% } %>
+            </div>
+            <div class="venue" style="margin-top:4px"><%- include('partials/icon', { name: 'pin' }) %><%= a.venue || 'Venue to be announced' %></div>
+            <% if (a.description) { %><p class="muted"><%= a.description %></p><% } %>
+          </div>
+        </div>
+        <% if (a.slots.length) { %>
+          <div class="slot-list" style="margin-top:16px">
+            <% for (const s of a.slots) {
+                 const pct = s.capacity ? Math.min(100, Math.round(100 * s.booked / s.capacity)) : 0;
+                 const low = s.available != null && s.available > 0 && s.available <= Math.max(3, Math.ceil(s.capacity * 0.1)); %>
+              <div class="slot-row<%= s.full ? ' is-full' : '' %><%= low ? ' is-low' : '' %>">
+                <div>
+                  <div class="t"><%= fmt.dayLabel(s.start_at) %> · <%= fmt.timeRange(s.start_at, s.end_at) %></div>
+                  <% if (s.label) { %><div class="l"><%= s.label %></div><% } %>
+                </div>
+                <div class="row" style="justify-content:flex-end">
+                  <% if (a.requiresSlot) { %>
+                    <span class="avail"><%= !s.open ? 'Closed' : s.full ? `${s.booked} / ${s.capacity} · FULL` : s.available == null ? 'Open' : `${s.available} of ${s.capacity} available` %></span>
+                    <% if (state.open && s.open && !s.full) { %><a class="btn sm" href="/register?slot=<%= s.id %>">Book this slot</a>
+                    <% } else { %><span class="btn sm outline" aria-disabled="true" style="opacity:.5;pointer-events:none"><%= s.full ? 'Full' : 'Unavailable' %></span><% } %>
+                  <% } %>
+                </div>
+                <% if (a.requiresSlot && s.capacity) { %><div class="meter <%= pct >= 100 ? 'full' : pct >= 85 ? 'hot' : '' %>" style="--pct:<%= pct %>%" role="img" aria-label="<%= s.booked %> of <%= s.capacity %> places booked"><span></span></div><% } %>
+              </div>
+            <% } %>
+          </div>
+        <% } %>
+      </section>
+    <% } %>
+  </div>
+</div>
+<%- include('partials/foot') %>

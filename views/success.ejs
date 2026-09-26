@@ -1,0 +1,59 @@
+<%- include('partials/head') %>
+<div class="container narrow" data-clear-draft>
+  <section class="success-hero">
+    <% if (p.status === 'approved' || p.status === 'pending') { %>
+      <div class="success-icon"><%- include('partials/icon', { name: 'check' }) %></div>
+      <span class="eyebrow dark"><%= p.status === 'approved' ? 'Registration successful' : 'Registration received' %></span>
+      <h1>Thank you, <%= fmt.displayName(p).split(' ')[0] %>!</h1>
+      <p class="muted" style="margin-bottom:6px">Your registration number</p>
+      <div class="reg-number"><%= p.registration_number %></div>
+      <% if (p.status === 'pending') { %>
+        <p class="alert info" style="margin:18px auto 0;max-width:520px">The organizers will review your registration. Your card will be ready at reception once it is approved.</p>
+      <% } %>
+    <% } else { %>
+      <h1>Registration <%= p.status %></h1>
+      <p class="alert error">This registration is <%= p.status %>. Please contact the help desk<%= event.contact_phone ? ' on ' + event.contact_phone : '' %>.</p>
+    <% } %>
+  </section>
+
+  <div class="card">
+    <div class="grid" style="grid-template-columns:1fr;gap:24px">
+      <div class="grid cols-2" style="align-items:center">
+        <div>
+          <h2>Collect your card at reception</h2>
+          <p class="muted">Your participant card — with your photo, name and QR code — will be printed by the organizers and handed to you at the reception desk on <strong><%= fmt.dayLabel(event.start_at) %> from <%= fmt.time(event.start_at) %></strong>. Just tell them your registration number.</p>
+          <p class="muted small" style="margin:0">You can also download your cards now to keep a copy on your phone.</p>
+        </div>
+        <div class="qr-box"><img src="<%= qr %>" width="172" height="172" alt="Your check-in QR code for <%= p.registration_number %>"></div>
+      </div>
+      <div class="grid cols-2 no-print">
+        <a class="btn" href="/r/<%= p.access_token %>/id-card.pdf" target="_blank" rel="noopener"><%- include('partials/icon', { name: 'download' }) %>Download ID card</a>
+        <a class="btn" href="/r/<%= p.access_token %>/activity-card.pdf" target="_blank" rel="noopener"><%- include('partials/icon', { name: 'download' }) %>Download activity card</a>
+      </div>
+      <div class="alert info small" style="margin:0">
+        <span><strong>Bookmark this page</strong> — it is your private link to see your registration again. Don't share it.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><h2>My experience</h2><button class="btn sm outline no-print" type="button" data-print>Print</button></div>
+    <% if (!bookings.length) { %>
+      <p class="muted" style="margin:0">You haven't booked any limited-place activities. You're welcome at all open programmes.</p>
+    <% } else { %>
+      <div class="slot-list">
+        <% for (const b of bookings) { %>
+          <div class="slot-row">
+            <div>
+              <div class="t"><%= fmt.dayLabel(b.start_at) %> · <%= fmt.timeRange(b.start_at, b.end_at) %></div>
+              <div><strong><%= b.activity_name %></strong><% if (b.label) { %> <span class="muted small">— <%= b.label %></span><% } %></div>
+            </div>
+            <span class="muted small"><%= b.venue || '' %></span>
+          </div>
+        <% } %>
+      </div>
+    <% } %>
+  </div>
+  <div style="height:48px"></div>
+</div>
+<%- include('partials/foot') %>

@@ -1,0 +1,161 @@
+<%- include('../partials/admin-head') %>
+<%
+  const tabs = [['overview', 'Overview'], ['contact', 'Contact'], ['emergency', 'Emergency'], ['activities', `Activities (${bookings.length})`],
+    ['documents', 'Documents'], ['checkins', 'Check-in history'], ['history', 'Audit history']];
+  const dash = (v) => (v == null || v === '' ? '—' : v);
+  const actions = { pending: ['approve', 'reject', 'cancel'], approved: ['cancel'], rejected: ['reinstate'], cancelled: ['reinstate'] }[p.status] || [];
+  const bookedIds = new Set(bookings.map((b) => b.slot_id));
+%>
+<p class="small"><a href="/admin/participants">← Participants</a></p>
+
+<section class="card">
+  <div class="spread" style="align-items:flex-start">
+    <div class="person">
+      <% if (p.profile_photo_path) { %><img class="photo" src="/admin/participants/<%= p.id %>/photo" alt="Photo of <%= fmt.fullName(p) %>"><% } else { %><div class="photo"></div><% } %>
+      <div>
+        <div class="name"><%= fmt.fullName(p) %></div>
+        <div class="reg-number" style="font-size:1.4rem;margin:4px 0 8px"><%= p.registration_number %></div>
+        <div class="row" style="gap:6px">
+          <span class="badge <%= p.status %>"><%= p.status %></span>
+          <span class="badge <%= p.card_printed_at ? 'yes' : '' %>"><%= p.card_printed_at ? `Card printed ${fmt.shortDate(p.card_printed_at)}${p.card_print_count > 1 ? ` (×${p.card_print_count})` : ''}` : 'Card not printed' %></span>
+          <span class="badge <%= entry ? 'yes' : '' %>"><%= entry ? 'Checked in ' + fmt.time(entry.checked_in_at) : 'Not checked in' %></span>
+        </div>
+      </div>
+    </div>
+    <div class="actions">
+      <% if (can('participants.manage')) { %><a class="btn sm outline" href="/admin/participants/<%= p.id %>/edit">Edit</a><% } %>
+      <% if (can('documents.print')) { %>
+        <a class="btn sm" href="/admin/participants/<%= p.id %>/id-card.pdf" target="_blank" rel="noopener"><%- include('../partials/icon', { name: 'printer' }) %>ID card</a>
+        <a class="btn sm" href="/admin/participants/<%= p.id %>/activity-card.pdf" target="_blank" rel="noopener">Activity card</a>
+      <% } %>
+      <% if (can('checkin.perform')) { %><a class="btn sm outline" href="/checkin/<%= p.qr_token %>?station=EVENT">Check in</a><% } %>
+    </div>
+  </div>
+  <% if (can('participants.manage') && actions.length) { %>
+    <div class="actions" style="margin-top:16px;padding-top:16px;border-top:1px solid var(--line)">
+      <% for (const a of actions) { %>
+        <form method="post" action="/admin/participants/<%= p.id %>/status" class="inline-form"
+              <% if (a === 'cancel' || a === 'reject') { %>data-confirm="<%= a === 'cancel' ? 'Cancel' : 'Reject' %> this registration? Their activity places will be released for others."<% } %>>
+          <input type="hidden" name="_csrf" value="<%= csrf() %>"><input type="hidden" name="action" value="<%= a %>">
+          <button class="btn sm <%= a === 'cancel' || a === 'reject' ? 'danger' : 'success' %>" type="submit"><%= a[0].toUpperCase() + a.slice(1) %></button>
+        </form>
+      <% } %>
+    </div>
+  <% } %>
+</section>
+
+<nav class="tabs" aria-label="Participant sections" style="margin-top:20px">
+  <% for (const [key, label] of tabs) { %><a href="?tab=<%= key %>"<%- tab === key ? ' aria-current="page"' : '' %>><%= label %></a><% } %>
+</nav>
+
+<section class="card">
+<% if (tab === 'overview') { %>
+  <dl class="kv">
+    <dt>Preferred name</dt><dd><%= dash(p.preferred_name) %></dd>
+    <dt>Date of birth</dt><dd><%= p.date_of_birth ? `${p.date_of_birth} (age ${fmt.ageOn(p.date_of_birth, event.start_at)})` : '—' %></dd>
+    <dt>Gender</dt><dd><%= dash(p.gender) %></dd>
+    <dt>Parish</dt><dd><%= dash(p.parish) %></dd>
+    <dt>Diocese</dt><dd><%= dash(p.diocese) %></dd>
+    <dt>Organization</dt><dd><%= dash(p.organization) %></dd>
+    <dt>Institution</dt><dd><%= dash(p.institution) %></dd>
+    <dt>Youth group</dt><dd><%= dash(p.youth_group) %></dd>
+    <dt>Coordinator</dt><dd><%= [p.coordinator_name, p.coordinator_mobile].filter(Boolean).join(' · ') || '—' %></dd>
+    <dt>Accommodation</dt><dd><%= p.accommodation_required ? `Yes · ${fmt.dateTime(p.arrival_at) || '?'} → ${fmt.dateTime(p.departure_at) || '?'}` : 'No' %><% if (p.accommodation_notes) { %><br><span class="muted"><%= p.accommodation_notes %></span><% } %></dd>
+    <dt>Food</dt><dd><%= p.food_required ? `Yes · ${p.food_preference || 'no preference'}` : 'No' %><% if (p.dietary_notes) { %><br><span class="muted"><%= p.dietary_notes %></span><% } %></dd>
+    <dt>Media consent</dt><dd><%= p.consent_media ? 'Yes' : 'No' %></dd>
+    <dt>Registered</dt><dd><%= fmt.dateTime(p.created_at) %></dd>
+  </dl>
+<% } else if (tab === 'contact') { %>
+  <dl class="kv">
+    <dt>Mobile</dt><dd><a href="tel:<%= p.mobile %>"><%= p.mobile %></a></dd>
+    <dt>WhatsApp</dt><dd><% if (p.whatsapp) { %><a href="https://wa.me/<%= p.whatsapp.replace(/^\+/, '').replace(/^(\d{10})$/, '91$1') %>" target="_blank" rel="noopener"><%= p.whatsapp %></a><% } else { %>—<% } %></dd>
+    <dt>Email</dt><dd><% if (p.email) { %><a href="mailto:<%= p.email %>"><%= p.email %></a><% } else { %>—<% } %></dd>
+    <dt>Address</dt><dd><%= dash(p.address) %></dd>
+    <dt>Locality</dt><dd><%= dash(p.locality) %></dd>
+    <dt>District</dt><dd><%= dash(p.district) %></dd>
+    <dt>State</dt><dd><%= dash(p.state) %></dd>
+    <dt>PIN code</dt><dd><%= dash(p.pin_code) %></dd>
+    <dt>Country</dt><dd><%= dash(p.country) %></dd>
+  </dl>
+<% } else if (tab === 'emergency') { %>
+  <div class="alert warning" style="margin-bottom:16px"><span>In an emergency, call this person first.</span></div>
+  <dl class="kv">
+    <dt>Name</dt><dd><strong><%= dash(p.emergency_name) %></strong><%= p.emergency_relationship ? ` (${p.emergency_relationship})` : '' %></dd>
+    <dt>Mobile</dt><dd><% if (p.emergency_mobile) { %><a class="btn sm" href="tel:<%= p.emergency_mobile %>"><%- include('../partials/icon', { name: 'phone' }) %><%= p.emergency_mobile %></a><% } else { %>—<% } %></dd>
+    <dt>Alternate mobile</dt><dd><%= dash(p.emergency_alternate_mobile) %></dd>
+    <dt>Email</dt><dd><%= dash(p.emergency_email) %></dd>
+    <dt>Address</dt><dd><%= dash(p.emergency_address) %></dd>
+  </dl>
+<% } else if (tab === 'activities') { %>
+  <% if (!bookings.length) { %><div class="empty small">No activity bookings.</div><% } %>
+  <% for (const b of bookings) { %>
+    <div class="booking">
+      <div><strong><%= b.activity_name %></strong><% if (b.label) { %> <span class="muted small">— <%= b.label %></span><% } %><br>
+        <span class="muted small"><%= fmt.dayLabel(b.start_at) %> · <%= fmt.timeRange(b.start_at, b.end_at) %> · <%= b.venue || '' %></span></div>
+      <div class="actions">
+        <span class="badge <%= b.checked_in_at ? 'yes' : '' %>"><%= b.checked_in_at ? 'Attended ' + fmt.time(b.checked_in_at) : 'Not yet' %></span>
+        <% if (can('participants.manage')) { %>
+          <form method="post" action="/admin/participants/<%= p.id %>/bookings" class="inline-form" data-confirm="Cancel this booking? The place will be released.">
+            <input type="hidden" name="_csrf" value="<%= csrf() %>"><input type="hidden" name="slot_id" value="<%= b.slot_id %>"><input type="hidden" name="remove" value="1">
+            <button class="btn sm danger" type="submit">Cancel booking</button>
+          </form>
+        <% } %>
+      </div>
+    </div>
+  <% } %>
+  <% if (can('participants.manage') && !['cancelled', 'rejected'].includes(p.status)) { %>
+    <form method="post" action="/admin/participants/<%= p.id %>/bookings" style="margin-top:18px;padding-top:18px;border-top:1px solid var(--line)">
+      <input type="hidden" name="_csrf" value="<%= csrf() %>">
+      <h3>Add a booking</h3>
+      <div class="form-row">
+        <div class="field">
+          <select name="slot_id" required aria-label="Slot">
+            <option value="">Choose a slot…</option>
+            <% for (const a of schedule) { %><optgroup label="<%= a.name %>"><% for (const s of a.slots) { if (bookedIds.has(s.id)) continue; %>
+              <option value="<%= s.id %>"><%= a.name %> · <%= fmt.dayLabel(s.start_at) %> <%= fmt.timeRange(s.start_at, s.end_at) %> — <%= s.full ? 'FULL' : s.available == null ? 'open' : s.available + ' left' %></option>
+            <% } %></optgroup><% } %>
+          </select>
+        </div>
+        <div class="field row">
+          <label class="check small"><input type="checkbox" name="force"> Override capacity / time conflict</label>
+          <button class="btn sm" type="submit">Add booking</button>
+        </div>
+      </div>
+    </form>
+  <% } %>
+<% } else if (tab === 'documents') { %>
+  <p class="muted small">Cards are generated fresh each time, so they always show the current details and bookings.</p>
+  <div class="actions" style="margin-bottom:16px">
+    <% if (can('documents.print')) { %>
+      <a class="btn sm" href="/admin/participants/<%= p.id %>/id-card.pdf" target="_blank" rel="noopener">ID card (marks as printed)</a>
+      <a class="btn sm outline" href="/admin/participants/<%= p.id %>/id-card.pdf?mark=0" target="_blank" rel="noopener">Preview ID card</a>
+      <a class="btn sm" href="/admin/participants/<%= p.id %>/activity-card.pdf" target="_blank" rel="noopener">Activity card</a>
+    <% } %>
+  </div>
+  <% if (!documents.length) { %><div class="empty small">No documents generated by staff yet.</div><% } else { %>
+    <table><thead><tr><th>Document</th><th>Generated</th><th>By</th></tr></thead><tbody>
+      <% for (const d of documents) { %><tr><td><%= d.document_type === 'ID_CARD' ? 'ID card' : 'Activity card' %></td><td><%= fmt.dateTime(d.generated_at) %></td><td><%= d.admin_name || '—' %></td></tr><% } %>
+    </tbody></table>
+  <% } %>
+<% } else if (tab === 'checkins') { %>
+  <% if (!checkins.length) { %><div class="empty small">No check-ins yet.</div><% } else { %>
+    <table><thead><tr><th>Time</th><th>Where</th><th>Staff</th></tr></thead><tbody>
+      <% for (const c of checkins) { %><tr><td><%= fmt.dateTime(c.checked_in_at) %></td><td><%= c.checkin_type === 'EVENT_ENTRY' ? 'Event entrance (card handed over)' : `${c.activity} · ${fmt.timeRange(c.start_at, c.end_at)}` %></td><td><%= c.staff || '—' %></td></tr><% } %>
+    </tbody></table>
+  <% } %>
+<% } else if (tab === 'history') { %>
+  <div class="table-wrap"><table><thead><tr><th>When</th><th>Action</th><th>By</th><th>Details</th></tr></thead><tbody>
+    <% for (const l of logs) {
+         let detail = '';
+         try {
+           const nv = l.new_value ? (typeof l.new_value === 'string' ? JSON.parse(l.new_value) : l.new_value) : null;
+           const ov = l.old_value ? (typeof l.old_value === 'string' ? JSON.parse(l.old_value) : l.old_value) : null;
+           if (nv && ov && l.action === 'PARTICIPANT_EDITED') detail = Object.keys(nv).map((k) => `${k}: ${JSON.stringify(ov[k] ?? '')} → ${JSON.stringify(nv[k] ?? '')}`).join('; ');
+           else if (nv) detail = Object.entries(nv).map(([k, v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : v}`).join(', ');
+         } catch { detail = ''; } %>
+      <tr><td class="xs" style="white-space:nowrap"><%= fmt.dateTime(l.created_at) %></td><td><%= l.action.replace(/_/g, ' ').toLowerCase() %></td><td><%= l.admin_name || 'Participant' %></td><td class="xs muted" style="max-width:420px;overflow-wrap:anywhere"><%= detail %></td></tr>
+    <% } %>
+  </tbody></table></div>
+<% } %>
+</section>
+<%- include('../partials/admin-foot') %>

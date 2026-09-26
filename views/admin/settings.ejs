@@ -1,0 +1,126 @@
+<%- include('../partials/admin-head') %>
+<%
+  const v = values;
+  const dt = (x) => (x ? String(x).slice(0, 16).replace(' ', 'T') : '');
+  const err = (k) => errors[k] ? `<div class="error-text">${errors[k]}</div>` : '';
+  const fe = (k) => errors[k] ? ' has-error' : '';
+%>
+<div class="page-title"><div><h1>Event &amp; settings</h1><div class="sub">Everything here updates the website, registration form and cards without code changes</div></div></div>
+<% if (Object.keys(errors).length) { %><div class="alert error" role="alert">Please correct the highlighted fields.</div><% } %>
+
+<form method="post" action="/admin/settings" enctype="multipart/form-data">
+  <input type="hidden" name="_csrf" value="<%= csrf() %>">
+
+  <section class="card">
+    <h2>Event</h2>
+    <div class="form-row">
+      <div class="field<%= fe('name') %>"><label for="s-name">Event name</label><input id="s-name" name="name" value="<%= v.name %>" required><%- err('name') %></div>
+      <div class="field"><label for="s-sub">Subtitle</label><input id="s-sub" name="subtitle" value="<%= v.subtitle || '' %>"></div>
+    </div>
+    <div class="form-row three">
+      <div class="field"><label for="s-venue">Venue</label><input id="s-venue" name="venue" value="<%= v.venue || '' %>"></div>
+      <div class="field<%= fe('start_at') %>"><label for="s-start">Starts</label><input id="s-start" type="datetime-local" name="start_at" value="<%= dt(v.start_at) %>" required><%- err('start_at') %></div>
+      <div class="field<%= fe('end_at') %>"><label for="s-end">Ends</label><input id="s-end" type="datetime-local" name="end_at" value="<%= dt(v.end_at) %>" required><%- err('end_at') %></div>
+    </div>
+    <label class="check"><input type="checkbox" name="shift_slots" checked> <span>If the start date changes, move every activity slot by the same number of days <span class="muted small">(e.g. to reuse this programme next year)</span></span></label>
+  </section>
+
+  <section class="card">
+    <h2>Registration</h2>
+    <div class="form-row three">
+      <div class="field"><label for="s-status">Registration</label>
+        <select id="s-status" name="status"><option value="open" <%= v.status === 'open' ? 'selected' : '' %>>Open</option><option value="closed" <%= v.status === 'closed' ? 'selected' : '' %>>Closed</option><option value="draft" <%= v.status === 'draft' ? 'selected' : '' %>>Draft (not public)</option></select></div>
+      <div class="field<%= fe('registration_open_at') %>"><label for="s-ro">Opens (optional)</label><input id="s-ro" type="datetime-local" name="registration_open_at" value="<%= dt(v.registration_open_at) %>"><%- err('registration_open_at') %></div>
+      <div class="field<%= fe('registration_close_at') %>"><label for="s-rc">Closes (optional)</label><input id="s-rc" type="datetime-local" name="registration_close_at" value="<%= dt(v.registration_close_at) %>"><%- err('registration_close_at') %></div>
+    </div>
+    <div class="form-row">
+      <div class="field"><label for="s-dup">Duplicate registration rule</label>
+        <select id="s-dup" name="duplicate_rule">
+          <option value="mobile_name" <%= v.duplicate_rule === 'mobile_name' ? 'selected' : '' %>>Same mobile + first name + date of birth (siblings can share a phone)</option>
+          <option value="mobile" <%= v.duplicate_rule === 'mobile' ? 'selected' : '' %>>One registration per mobile number</option>
+          <option value="email" <%= v.duplicate_rule === 'email' ? 'selected' : '' %>>One registration per email</option>
+          <option value="none" <%= v.duplicate_rule === 'none' ? 'selected' : '' %>>No duplicate check</option>
+        </select></div>
+      <div class="field" style="padding-top:28px">
+        <label class="check" style="margin-bottom:8px"><input type="checkbox" name="auto_approve" <%= v.auto_approve ? 'checked' : '' %>> Approve registrations automatically</label>
+        <label class="check"><input type="checkbox" name="allow_overlapping_bookings" <%= v.allow_overlapping_bookings ? 'checked' : '' %>> Allow booking overlapping activities</label>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Registration form fields</h2>
+    <p class="muted small">Choose which fields appear and which are required. Name and mobile are always required.</p>
+    <% for (const s of fields) { %>
+      <h3 style="margin-top:14px;font-size:.9rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)"><%= s.title %></h3>
+      <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px 16px">
+        <% for (const f of s.fields) { const mode = f.locked ? 'required' : (formConfig[f.name] || f.mode); %>
+          <label class="spread small" style="gap:8px;border-bottom:1px dashed var(--line);padding:4px 0">
+            <span><%= f.label %></span>
+            <select name="field_<%= f.name %>" <%= f.locked ? 'disabled' : '' %> style="width:auto;min-height:34px;padding:4px 8px;font-size:.8rem">
+              <option value="required" <%= mode === 'required' ? 'selected' : '' %>>Required</option>
+              <option value="optional" <%= mode === 'optional' ? 'selected' : '' %>>Optional</option>
+              <option value="hidden" <%= mode === 'hidden' ? 'selected' : '' %>>Hidden</option>
+            </select>
+          </label>
+        <% } %>
+      </div>
+    <% } %>
+    <div class="field" style="margin-top:18px"><label for="s-food">Food preference options <span class="muted">(one per line)</span></label>
+      <textarea id="s-food" name="food_options" rows="3"><%= (c.food_options || ['Vegetarian', 'Non-vegetarian', 'Other']).join('\n') %></textarea></div>
+  </section>
+
+  <section class="card">
+    <h2>Branding</h2>
+    <div class="form-row">
+      <div class="field<%= fe('hero_image') %>"><label for="s-hero">Hero image</label><input id="s-hero" type="file" name="hero_image" accept="image/jpeg,image/png"><%- err('hero_image') %>
+        <div class="help">Portrait image such as the event poster, max 5 MB. <%= v.hero_image_path ? 'A custom image is set.' : 'Using the supplied poster.' %></div>
+        <% if (v.hero_image_path) { %><label class="check small"><input type="checkbox" name="remove_hero"> Use the default poster</label><% } %></div>
+      <div class="field<%= fe('logo') %>"><label for="s-logo">Logo</label><input id="s-logo" type="file" name="logo" accept="image/png,image/jpeg"><%- err('logo') %>
+        <div class="help">Square PNG works best. Printed on the cards.</div>
+        <% if (v.logo_path) { %><label class="check small"><input type="checkbox" name="remove_logo"> Remove logo</label><% } %></div>
+    </div>
+    <div class="form-row">
+      <div class="field"><label for="s-p">Primary colour</label><input id="s-p" type="color" name="theme_primary" value="<%= c.theme.primary %>"></div>
+      <div class="field"><label for="s-s">Accent colour</label><input id="s-s" type="color" name="theme_secondary" value="<%= c.theme.secondary %>"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Website text</h2>
+    <div class="form-row">
+      <div class="field"><label for="s-kick">Hero line</label><input id="s-kick" name="hero_kicker" value="<%= c.hero_kicker %>"></div>
+      <div class="field"><label for="s-theme">Theme</label><input id="s-theme" name="hero_theme" value="<%= c.hero_theme %>"></div>
+    </div>
+    <div class="field"><label for="s-it">Introduction title</label><input id="s-it" name="intro_title" value="<%= c.intro_title %>"></div>
+    <div class="field"><label for="s-ix">Introduction</label><textarea id="s-ix" name="intro_text" rows="3"><%= c.intro_text %></textarea></div>
+    <div class="grid cols-2">
+      <% for (let i = 0; i < 4; i++) { const f = c.features[i] || { title: '', text: '' }; %>
+        <div class="field"><label for="s-ft<%= i %>">Card <%= i + 1 %></label>
+          <input id="s-ft<%= i %>" name="feature_title_<%= i %>" value="<%= f.title %>" placeholder="Title" style="margin-bottom:6px">
+          <textarea name="feature_text_<%= i %>" rows="2" aria-label="Card <%= i + 1 %> text"><%= f.text %></textarea></div>
+      <% } %>
+    </div>
+    <div class="field"><label for="s-org">Organizers line</label><textarea id="s-org" name="organizers" rows="2"><%= c.organizers %></textarea></div>
+  </section>
+
+  <section class="card">
+    <h2>Contact &amp; cards</h2>
+    <div class="form-row three">
+      <div class="field"><label for="s-phone">Contact phone</label><input id="s-phone" name="contact_phone" value="<%= v.contact_phone || '' %>"></div>
+      <div class="field"><label for="s-email">Contact email</label><input id="s-email" type="email" name="contact_email" value="<%= v.contact_email || '' %>"></div>
+      <div class="field"><label for="s-help">Help desk line (activity card)</label><input id="s-help" name="help_desk_text" value="<%= v.help_desk_text || '' %>"></div>
+    </div>
+    <div class="field"><label for="s-ci">ID card instruction (back of card)</label><input id="s-ci" name="card_instruction" value="<%= c.card_instruction %>" maxlength="120"></div>
+  </section>
+
+  <section class="card">
+    <h2>Privacy policy &amp; terms</h2>
+    <p class="muted small">The wording must be approved by the organizers. Leave a blank line between paragraphs.</p>
+    <div class="field"><label for="s-priv">Privacy policy</label><textarea id="s-priv" name="privacy_text" rows="8"><%= c.privacy_text %></textarea></div>
+    <div class="field"><label for="s-terms">Terms of participation</label><textarea id="s-terms" name="terms_text" rows="8"><%= c.terms_text %></textarea></div>
+  </section>
+
+  <div class="actions" style="position:sticky;bottom:0;background:#f5f5f2;padding:12px 0"><button class="btn lg" type="submit" data-loading-text="Saving…">Save settings</button></div>
+</form>
+<%- include('../partials/admin-foot') %>

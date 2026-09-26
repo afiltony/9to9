@@ -1,0 +1,38 @@
+<%- include('../partials/admin-head') %>
+<div class="page-title"><div><h1>Audit log</h1><div class="sub">Every administrative change, newest first</div></div></div>
+<form class="card tight row" method="get" action="/admin/audit" style="margin-bottom:14px">
+  <select name="action" aria-label="Action" style="max-width:320px">
+    <option value="">All actions</option>
+    <% for (const a of actions) { %><option value="<%= a %>" <%= action === a ? 'selected' : '' %>><%= a.replace(/_/g, ' ').toLowerCase() %></option><% } %>
+  </select>
+  <button class="btn sm" type="submit">Filter</button>
+</form>
+<div class="card" style="padding:4px 8px">
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>When</th><th>Staff</th><th>Action</th><th>Participant</th><th>Change</th><th>IP</th></tr></thead>
+      <tbody>
+        <% if (!rows.length) { %><tr><td colspan="6"><div class="empty">No entries.</div></td></tr><% } %>
+        <% for (const l of rows) {
+             const j = (x) => { if (!x) return ''; const o = typeof x === 'string' ? JSON.parse(x) : x; return Object.entries(o).map(([k, v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : v}`).join(', '); };
+             let oldV = '', newV = '';
+             try { oldV = j(l.old_value); newV = j(l.new_value); } catch { /* ignore */ } %>
+          <tr>
+            <td class="xs" style="white-space:nowrap"><%= fmt.dateTime(l.created_at) %></td>
+            <td><%= l.admin_name || (l.participant_id ? 'Participant' : 'System') %></td>
+            <td><span class="badge"><%= l.action.replace(/_/g, ' ').toLowerCase() %></span></td>
+            <td><% if (l.registration_number) { %><a href="/admin/participants/<%= l.participant_id %>"><%= l.registration_number %></a> <span class="xs muted"><%= l.first_name %> <%= l.last_name || '' %></span><% } %></td>
+            <td class="xs muted" style="max-width:420px;overflow-wrap:anywhere"><% if (oldV) { %><div>Before: <%= oldV %></div><% } %><% if (newV) { %><div>After: <%= newV %></div><% } %></td>
+            <td class="xs muted"><%= l.ip_address || '' %></td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+<nav class="pager">
+  <% if (page > 1) { %><a class="btn sm outline" href="?page=<%= page - 1 %>&action=<%= action %>">← Newer</a><% } %>
+  <span class="small muted">Page <%= page %></span>
+  <% if (hasMore) { %><a class="btn sm outline" href="?page=<%= page + 1 %>&action=<%= action %>">Older →</a><% } %>
+</nav>
+<%- include('../partials/admin-foot') %>

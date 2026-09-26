@@ -1,0 +1,10 @@
+<%- include('partials/head') %>
+<section class="page-hero" data-letters="9 to 9">
+  <div class="container"><h1><%= title %></h1></div>
+</section>
+<div class="section">
+  <div class="container narrow prose">
+    <% for (const para of String(body || '').split(/\n{2,}/)) { %><p><%= para %></p><% } %>
+  </div>
+</div>
+<%- include('partials/foot') %>

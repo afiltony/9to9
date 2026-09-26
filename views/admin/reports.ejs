@@ -1,0 +1,46 @@
+<%- include('../partials/admin-head') %>
+<div class="page-title"><div><h1>Reports</h1><div class="sub">View on screen or export to CSV, Excel or PDF</div></div></div>
+<div class="grid cols-2">
+  <% for (const [key, r] of Object.entries(reports)) { %>
+    <section class="card">
+      <h2 style="font-size:1.1rem"><%= r.title %></h2>
+      <p class="muted small"><%= r.description %></p>
+      <% if (r.needsSlot) { %>
+        <form method="get" action="/admin/reports/<%= key %>">
+          <div class="field">
+            <select name="slot" required aria-label="Slot">
+              <option value="">Choose a slot…</option>
+              <% for (const a of schedule) { %><optgroup label="<%= a.name %>"><% for (const s of a.slots) { %><option value="<%= s.id %>"><%= a.name %> · <%= fmt.dayLabel(s.start_at).split(' ').slice(1).join(' ') %> <%= fmt.timeRange(s.start_at, s.end_at) %> (<%= s.booked %>)</option><% } %></optgroup><% } %>
+            </select>
+          </div>
+          <div class="actions">
+            <button class="btn sm" type="submit" name="format" value="html">View</button>
+            <button class="btn sm outline" type="submit" name="format" value="pdf">PDF</button>
+            <button class="btn sm outline" type="submit" name="format" value="xlsx">Excel</button>
+          </div>
+        </form>
+      <% } else if (r.filters) { %>
+        <form method="get" action="/admin/reports/<%= key %>">
+          <div class="form-row">
+            <div class="field"><select name="status" aria-label="Status"><option value="">Any status</option><option value="active">Approved + pending</option><% for (const s of statuses) { %><option value="<%= s %>"><%= s %></option><% } %></select></div>
+            <div class="field"><select name="checked_in" aria-label="Checked in"><option value="">Check-in: any</option><option value="yes">Checked in</option><option value="no">Not checked in</option></select></div>
+          </div>
+          <div class="actions">
+            <button class="btn sm" type="submit" name="format" value="html">View</button>
+            <button class="btn sm outline" type="submit" name="format" value="csv">CSV</button>
+            <button class="btn sm outline" type="submit" name="format" value="xlsx">Excel</button>
+            <button class="btn sm outline" type="submit" name="format" value="pdf">PDF</button>
+          </div>
+        </form>
+      <% } else { %>
+        <div class="actions">
+          <a class="btn sm" href="/admin/reports/<%= key %>">View</a>
+          <a class="btn sm outline" href="/admin/reports/<%= key %>?format=csv">CSV</a>
+          <a class="btn sm outline" href="/admin/reports/<%= key %>?format=xlsx">Excel</a>
+          <a class="btn sm outline" href="/admin/reports/<%= key %>?format=pdf" target="_blank" rel="noopener">PDF</a>
+        </div>
+      <% } %>
+    </section>
+  <% } %>
+</div>
+<%- include('../partials/admin-foot') %>

@@ -1,0 +1,187 @@
+<%- include('partials/head', { description: 'Register for 9 TO 9 Meet and book your activity slots.' }) %>
+<%
+  const stepIcons = { personal: 'user', contact: 'phone', church: 'church', emergency: 'heart', requirements: 'bed' };
+  const stepIntro = {
+    personal: 'Your name and photo appear on your printed participant card.',
+    contact: 'We use these only to contact you about the event.',
+    church: 'Tell us where you come from.',
+    emergency: 'Who should we call if something happens during the event?',
+    requirements: 'Help us plan accommodation and food.',
+  };
+  const steps = [
+    ...sections.map((s) => ({ key: s.key, label: s.step })),
+    { key: 'activities', label: 'Activities' },
+    { key: 'consent', label: 'Consent' },
+    { key: 'confirm', label: 'Confirm' },
+  ];
+  const isOn = (v) => v === 'on' || v === '1' || v === true;
+  const hasValues = Object.keys(values).length > 0;
+%>
+<div class="wizard">
+  <div class="container narrow">
+    <% if (!state.open) { %>
+      <div class="card center" style="margin-top:24px">
+        <h1>Registration is closed</h1>
+        <p class="lead" style="margin:0 auto 20px"><%= state.reason %></p>
+        <% if (event.contact_phone) { %><p>For help call <a href="tel:<%= event.contact_phone.replace(/\s/g, '') %>"><%= event.contact_phone %></a>.</p><% } %>
+      </div>
+    <% } else { %>
+
+    <div class="wizard-top">
+      <h1 class="sr-only">Register for 9 TO 9 Meet</h1>
+      <ol class="stepper" id="stepper" aria-label="Registration steps">
+        <% steps.forEach((s, i) => { %>
+          <li data-step-link="<%= i %>"><button type="button" disabled><span class="n"><%= String(i + 1).padStart(2, '0') %></span><span class="t"><%= s.label %></span></button></li>
+        <% }) %>
+      </ol>
+      <div class="progress" aria-hidden="true"><span id="progress-bar"></span></div>
+    </div>
+
+    <% if (message) { %><div class="alert error" role="alert" id="form-message"><%= message %></div><% } %>
+
+    <form method="post" action="/register" enctype="multipart/form-data" id="reg-form" novalidate
+          data-allow-overlap="<%= event.allow_overlapping_bookings ? '1' : '0' %>">
+      <input type="hidden" name="_csrf" value="<%= csrf() %>">
+
+      <% sections.forEach((section) => { %>
+        <fieldset class="card step<%= section.key === 'emergency' ? ' panel-emergency' : '' %>" data-step="<%= section.key %>" data-title="<%= section.title %>" aria-labelledby="h-<%= section.key %>">
+          <div class="step-head">
+            <div class="icon"><%- include('partials/icon', { name: stepIcons[section.key] }) %></div>
+            <div><h2 id="h-<%= section.key %>"><%= section.title %></h2><p><%= stepIntro[section.key] %></p></div>
+          </div>
+
+          <% for (const f of section.fields) {
+               const v = values[f.name] ?? (hasValues ? '' : (f.default ?? ''));
+               const err = errors[f.name];
+               const id = 'f_' + f.name; %>
+            <div class="field<%= err ? ' has-error' : '' %>" data-field="<%= f.name %>" data-label="<%= f.label %>"<% if (f.showIf) { %> data-show-if="<%= f.showIf %>"<% } %>>
+            <% if (f.type === 'checkbox') { %>
+              <span class="label" id="<%= id %>_l"><%= f.label.replace(/^I need /, 'Do you need ') %>?</span>
+              <div class="choice-group" role="radiogroup" aria-labelledby="<%= id %>_l">
+                <label class="choice"><input type="radio" name="<%= f.name %>" value="on" <%= isOn(v) ? 'checked' : '' %>><span>Yes</span></label>
+                <label class="choice"><input type="radio" name="<%= f.name %>" value="" <%= !isOn(v) ? 'checked' : '' %>><span>No</span></label>
+              </div>
+            <% } else if (f.type === 'photo') { %>
+              <span class="label" id="<%= id %>_l"><%= f.label %><% if (f.required) { %> <span class="req">*</span><% } %></span>
+              <label class="dropzone" id="dropzone" for="<%= id %>">
+                <span class="dz-preview" id="photo-preview"><%- include('partials/icon', { name: 'camera' }) %></span>
+                <span class="dz-text">
+                  <strong>Drag a photo here or tap to upload</strong>
+                  <span class="help" style="display:block">JPG, JPEG or PNG · max <%= maxPhotoMb %> MB · face clearly visible. We resize it for you.</span>
+                  <span class="help" id="photo-name" style="display:block"></span>
+                </span>
+                <input type="file" name="profile_photo" id="<%= id %>" accept="image/jpeg,image/png,image/*" <%= f.required ? 'required' : '' %> aria-describedby="<%= id %>_l">
+              </label>
+            <% } else { %>
+              <label for="<%= id %>"><%= f.label %><% if (f.required) { %> <span class="req">*</span><% } %></label>
+              <% if (f.type === 'select') { %>
+                <select name="<%= f.name %>" id="<%= id %>" <%= f.required ? 'required' : '' %>>
+                  <option value="">Choose…</option>
+                  <% for (const o of f.options) { %><option <%= v === o ? 'selected' : '' %>><%= o %></option><% } %>
+                </select>
+              <% } else if (f.type === 'textarea') { %>
+                <textarea name="<%= f.name %>" id="<%= id %>" maxlength="<%= f.max %>" rows="3" <%= f.required ? 'required' : '' %>><%= v %></textarea>
+              <% } else if (f.countryCode) { const cc = values[f.name + '_cc'] || '+91'; %>
+                <div class="phone-input">
+                  <select name="<%= f.name %>_cc" aria-label="Country code for <%= f.label %>">
+                    <% for (const code of countryCodes) { %><option <%= cc === code ? 'selected' : '' %>><%= code %></option><% } %>
+                  </select>
+                  <input type="tel" name="<%= f.name %>" id="<%= id %>" value="<%= v %>" inputmode="tel" maxlength="20" <%= f.required ? 'required' : '' %>
+                         pattern="[0-9 +\-]{8,20}" autocomplete="<%= f.autocomplete || 'tel-national' %>">
+                </div>
+              <% } else { %>
+                <input type="<%= f.type %>" name="<%= f.name %>" id="<%= id %>" value="<%= v %>"
+                  <%= f.max && f.type !== 'date' && f.type !== 'datetime-local' ? `maxlength=${f.max}` : '' %> <%= f.required ? 'required' : '' %>
+                  <% if (f.autocomplete) { %>autocomplete="<%= f.autocomplete %>"<% } %>
+                  <% if (f.inputmode) { %>inputmode="<%= f.inputmode %>"<% } %>
+                  <% if (f.type === 'tel') { %>inputmode="tel" pattern="[0-9 +\-]{8,20}"<% } %>
+                  <% if (f.type === 'date') { %>max="<%= event.start_at.slice(0, 10) %>" min="1930-01-01"<% } %>>
+                <% if (f.name === 'date_of_birth') { %><div class="help" id="age-display" aria-live="polite"></div><% } %>
+              <% } %>
+            <% } %>
+            <% if (err) { %><div class="error-text" role="alert"><%= err %></div><% } %>
+            </div>
+          <% } %>
+        </fieldset>
+      <% }) %>
+
+      <fieldset class="card step" data-step="activities" data-title="Selected activities" aria-labelledby="h-activities">
+        <div class="step-head">
+          <div class="icon"><%- include('partials/icon', { name: 'calendar' }) %></div>
+          <div><h2 id="h-activities">Select your activities</h2><p>Tap a time to book it. Places are held when you confirm your registration.</p></div>
+        </div>
+        <div class="conflict-box" id="conflict-message" hidden role="alert" aria-live="assertive"></div>
+        <div class="selected-bar" id="selected-bar" aria-live="polite"></div>
+        <% for (const a of schedule) { if (!a.slots.length) continue; %>
+          <section class="picker-activity" aria-labelledby="pa-<%= a.id %>">
+            <header>
+              <h3 id="pa-<%= a.id %>"><%= a.name %></h3>
+              <span class="venue" style="margin:0"><%- include('partials/icon', { name: 'pin' }) %><%= a.venue || 'Venue to be announced' %><%= a.capacity ? ' · ' + a.capacity + ' per slot' : '' %></span>
+            </header>
+            <div class="slot-grid">
+              <% let lastDay = null; for (const s of a.slots) {
+                   const day = fmt.dayLabel(s.start_at);
+                   const unavailable = s.full || !s.open;
+                   const low = !unavailable && s.available != null && s.available <= Math.max(3, Math.ceil(s.capacity * 0.1));
+                   const pct = s.capacity ? Math.min(100, Math.round(100 * s.booked / s.capacity)) : 0;
+                   if (day !== lastDay) { lastDay = day; %><div class="day-sep"><%= day %></div><% } %>
+                <label class="slot<%= s.full ? ' full' : '' %><%= !s.open ? ' closed' : '' %><%= low ? ' low' : '' %><%= badSlots.has(s.id) ? ' bad' : '' %>">
+                  <input type="checkbox" name="slots" value="<%= s.id %>"
+                         data-start="<%= s.start_at %>" data-end="<%= s.end_at %>" data-activity="<%= a.name %>"
+                         data-time="<%= fmt.timeRange(s.start_at, s.end_at) %>" data-day="<%= day %>" data-venue="<%= a.venue || '' %>"
+                         <%= selected.has(s.id) && !unavailable ? 'checked' : '' %> <%= unavailable ? 'disabled' : '' %>>
+                  <span class="state" aria-hidden="true"></span>
+                  <span class="t"><%= fmt.timeRange(s.start_at, s.end_at) %></span>
+                  <% if (s.label) { %><span class="l"><%= s.label %></span><% } %>
+                  <span class="a" data-avail><%= !s.open ? 'UNAVAILABLE' : s.full ? `${s.booked} / ${s.capacity} · FULL` : s.available == null ? 'Open' : `${s.available} place${s.available === 1 ? '' : 's'} left` %></span>
+                  <% if (s.capacity) { %><span class="meter <%= pct >= 100 ? 'full' : pct >= 85 ? 'hot' : '' %>" style="--pct:<%= pct %>%"><span></span></span><% } %>
+                </label>
+              <% } %>
+            </div>
+          </section>
+        <% } %>
+        <p class="help">Programme items that need no booking are open to everyone — see the <a href="/schedule" target="_blank">full schedule</a>.</p>
+      </fieldset>
+
+      <fieldset class="card step" data-step="consent" data-title="Consent" aria-labelledby="h-consent">
+        <div class="step-head">
+          <div class="icon"><%- include('partials/icon', { name: 'shield' }) %></div>
+          <div><h2 id="h-consent">Consent</h2><p>Please read and confirm. See the <a href="/privacy" target="_blank">privacy policy</a> and <a href="/terms" target="_blank">terms</a>.</p></div>
+        </div>
+        <% for (const c of consents) { %>
+          <div class="field<%= errors[c.name] ? ' has-error' : '' %>">
+            <label class="check"><input type="checkbox" name="<%= c.name %>" <%= isOn(values[c.name]) ? 'checked' : '' %> <%= c.required ? 'required' : '' %>>
+              <span><%= c.label %><% if (c.required) { %> <span class="req">*</span><% } %></span></label>
+            <% if (errors[c.name]) { %><div class="error-text"><%= errors[c.name] %></div><% } %>
+          </div>
+        <% } %>
+      </fieldset>
+
+      <section class="step" data-step="confirm" aria-labelledby="confirm-title">
+        <div class="card">
+          <div class="step-head">
+            <div class="icon"><%- include('partials/icon', { name: 'checkCircle' }) %></div>
+            <div><h2 id="confirm-title">Check your registration</h2><p>Make sure everything is correct — it will be printed on your card.</p></div>
+          </div>
+          <div id="summary"></div>
+        </div>
+      </section>
+
+      <div class="no-js-submit"><button class="btn lg block" type="submit">Confirm registration</button></div>
+
+      <div class="wizard-nav" id="wizard-nav">
+        <div class="container narrow">
+          <span class="info" id="nav-info"></span>
+          <div class="btns">
+            <button type="button" class="btn outline" id="btn-back">Back</button>
+            <button type="button" class="btn" id="btn-next">Next</button>
+            <button type="submit" class="btn gold" id="btn-submit" hidden data-loading-text="Registering…">Confirm registration</button>
+          </div>
+        </div>
+      </div>
+    </form>
+    <% } %>
+  </div>
+</div>
+<script src="/static/js/register.js"></script>
+<%- include('partials/foot') %>

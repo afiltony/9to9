@@ -1,0 +1,6 @@
+<div class="stitle<%= typeof dark !== 'undefined' && dark ? ' on-dark' : '' %>">
+  <% if (typeof kicker !== 'undefined' && kicker) { %><span class="kicker"><%= kicker %></span><% } %>
+  <h2<% if (typeof id !== 'undefined') { %> id="<%= id %>"<% } %>><%= title %></h2>
+  <svg class="brace" viewBox="0 0 380 64" aria-hidden="true" focusable="false"><path d="M8 6v12c0 12 8 18 22 18h118c20 0 34 8 42 22 8-14 22-22 42-22h118c14 0 22-6 22-18V6" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <% if (typeof sub !== 'undefined' && sub) { %><div class="sub"><%= sub %></div><% } %>
+</div>

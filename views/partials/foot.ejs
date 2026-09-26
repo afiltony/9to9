@@ -1,0 +1,43 @@
+</main>
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <h4>The event</h4>
+        <% if (event) { %>
+          <p style="margin:0"><%= fmt.dayLabel(event.start_at) %>, <%= fmt.time(event.start_at) %><br>to <%= fmt.dayLabel(event.end_at) %>, <%= fmt.time(event.end_at) %></p>
+          <% if (event.venue) { %><p style="margin:8px 0 0"><%= event.venue %></p><% } %>
+        <% } %>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <ul>
+          <% if (event && event.contact_phone) { %><li><strong>t:</strong> <a href="tel:<%= event.contact_phone.replace(/\s/g, '') %>"><%= event.contact_phone %></a></li><% } %>
+          <% if (event && event.contact_email) { %><li><strong>e:</strong> <a href="mailto:<%= event.contact_email %>"><%= event.contact_email %></a></li><% } %>
+          <li><a href="/contact">Help &amp; contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Explore</h4>
+        <ul>
+          <li><a href="/schedule">Schedule</a></li>
+          <li><a href="/activities">Activities</a></li>
+          <li><a href="/about">About</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Join us</h4>
+        <p>Register online, book your activity slots and collect your card at reception.</p>
+        <a class="btn gold sm" href="/register">Register</a>
+      </div>
+    </div>
+    <% if (content && content.organizers) { %><p class="small" style="margin:28px 0 0;color:rgb(255 255 255 / 75%)"><%= content.organizers %></p><% } %>
+    <div class="footer-bottom">
+      <span>Copyright © <%= event ? event.start_at.slice(0, 4) : '' %> 9 TO 9 Meet | <a href="/privacy">Privacy Policy</a> | <a href="/terms">Terms</a></span>
+      <a href="/admin/login">Staff login</a>
+    </div>
+  </div>
+</footer>
+<script src="/static/js/common.js"></script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<%- include('../partials/admin-head') %>
+<div class="page-title">
+  <div><h1>Print cards</h1><div class="sub">Participants register online — their cards are filled in automatically. Print them here and hand them over at reception.</div></div>
+</div>
+
+<div class="metrics" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))">
+  <div class="metric accent"><div class="k">Waiting to print</div><div class="n"><%= waiting %></div><div class="s">approved, card not printed</div></div>
+  <div class="metric"><div class="k">Printed</div><div class="n"><%= printed %></div></div>
+  <div class="metric"><div class="k">Matching this selection</div><div class="n"><%= count %></div><div class="s"><%= count > maxBatch ? `printed in batches of ${maxBatch}` : 'ready' %></div></div>
+</div>
+
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(340px,1fr));align-items:start">
+  <form class="card" method="get" action="/admin/documents">
+    <h2>1. Who</h2>
+    <div class="field">
+      <label for="d-printed">Cards</label>
+      <select id="d-printed" name="printed">
+        <option value="no" <%= filters.printed === 'no' ? 'selected' : '' %>>Not printed yet (recommended)</option>
+        <option value="yes" <%= filters.printed === 'yes' ? 'selected' : '' %>>Already printed (reprint)</option>
+        <option value="" <%= !filters.printed ? 'selected' : '' %>>All</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="d-status">Status</label>
+      <select id="d-status" name="status">
+        <option value="approved" <%= filters.status === 'approved' ? 'selected' : '' %>>Approved</option>
+        <option value="active" <%= filters.status === 'active' ? 'selected' : '' %>>Approved + pending</option>
+        <option value="" <%= !filters.status ? 'selected' : '' %>>Any status</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="field"><label for="d-from">Reg. number from</label><input id="d-from" name="from" value="<%= filters.from %>" placeholder="e.g. 1" inputmode="numeric"></div>
+      <div class="field"><label for="d-to">to</label><input id="d-to" name="to" value="<%= filters.to %>" placeholder="e.g. 150" inputmode="numeric"></div>
+    </div>
+    <div class="form-row">
+      <div class="field"><label for="d-parish">Parish</label><input id="d-parish" list="dl-parish" name="parish" value="<%= filters.parish %>"></div>
+      <div class="field"><label for="d-district">District</label><input id="d-district" list="dl-district" name="district" value="<%= filters.district %>"></div>
+    </div>
+    <div class="field">
+      <label for="d-slot">Booked into slot</label>
+      <select id="d-slot" name="slot"><option value="">Any</option>
+        <% for (const a of schedule) { %><optgroup label="<%= a.name %>"><% for (const s of a.slots) { %><option value="<%= s.id %>" <%= filters.slot === s.id ? 'selected' : '' %>><%= a.name %> · <%= fmt.timeRange(s.start_at, s.end_at) %></option><% } %></optgroup><% } %>
+      </select>
+    </div>
+    <datalist id="dl-parish"><% for (const v of options.parishes) { %><option value="<%= v %>"><% } %></datalist>
+    <datalist id="dl-district"><% for (const v of options.districts) { %><option value="<%= v %>"><% } %></datalist>
+    <button class="btn outline" type="submit">Update count</button>
+  </form>
+
+  <form class="card" method="post" action="/admin/documents" data-download>
+    <input type="hidden" name="_csrf" value="<%= csrf() %>">
+    <input type="hidden" name="scope" value="filter">
+    <% for (const k of ['printed', 'status', 'from', 'to', 'parish', 'district', 'slot']) { %><input type="hidden" name="<%= k %>" value="<%= filters[k] %>"><% } %>
+    <h2>2. What</h2>
+    <div class="field">
+      <span class="label">Document</span>
+      <div class="choice-group">
+        <label class="choice"><input type="radio" name="kind" value="id" checked><span>ID cards</span></label>
+        <label class="choice"><input type="radio" name="kind" value="activity"><span>Activity cards (A5)</span></label>
+      </div>
+    </div>
+    <div class="field">
+      <span class="label">ID card layout</span>
+      <label class="check" style="margin-bottom:10px"><input type="radio" name="layout" value="card" checked>
+        <span><strong>PVC card printer</strong><br><span class="small muted">One 54 × 85.6 mm card per page — front, then back.</span></span></label>
+      <label class="check"><input type="radio" name="layout" value="a4">
+        <span><strong>A4 sheets, 9 cards per page</strong><br><span class="small muted">Print double-sided (flip on long edge) on card stock, then cut along the crop marks.</span></span></label>
+    </div>
+    <label class="check small" style="margin-bottom:18px"><input type="checkbox" name="mark" value="no"> Test print — don't mark these cards as printed</label>
+    <button class="btn lg block" type="submit" <%= count ? '' : 'disabled' %> data-loading-text="Generating PDF…">
+      <%- include('../partials/icon', { name: 'printer' }) %>Generate <%= Math.min(count, maxBatch) %> card<%= Math.min(count, maxBatch) === 1 ? '' : 's' %>
+    </button>
+    <p class="help">Batches are limited to <%= maxBatch %> participants in registration-number order. After printing, this page shows the next batch automatically (when “Not printed yet” is selected).</p>
+  </form>
+</div>
+
+<section class="card">
+  <h2>At reception</h2>
+  <ol class="muted small" style="margin:0;padding-left:20px">
+    <li>File the printed cards in registration-number order.</li>
+    <li>When a participant arrives, open <a href="/admin/checkin">Check-in</a> (station: Reception), and search their number, mobile or name.</li>
+    <li>Compare the photo, hand over the card, and press <strong>Card handed over · Check in</strong>.</li>
+    <li>If their card isn't printed yet, use <strong>Print ID card now</strong> on the same screen.</li>
+  </ol>
+</section>
+<%- include('../partials/admin-foot') %>

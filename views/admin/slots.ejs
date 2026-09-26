@@ -1,0 +1,12 @@
+<%- include('../partials/admin-head') %>
+<div class="page-title">
+  <div><h1>Time slots</h1><div class="sub"><%= slots.length %> slots across all activities, in time order</div></div>
+</div>
+<section class="card">
+  <h2>Add a slot</h2>
+  <%- include('slot-form', { slot: null, activityId: null, back: 'slots', defaultDate: event.start_at.slice(0, 10), defaultCapacity: null }) %>
+</section>
+<section class="card" style="position:relative">
+  <%- include('slot-table', { slots, back: 'slots', activityId: null }) %>
+</section>
+<%- include('../partials/admin-foot') %>

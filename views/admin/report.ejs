@@ -1,0 +1,23 @@
+<%- include('../partials/admin-head') %>
+<p class="small"><a href="/admin/reports">← Reports</a></p>
+<div class="page-title">
+  <div><h1><%= title %></h1><div class="sub"><%= report.rows.length %> rows</div></div>
+  <div class="actions">
+    <a class="btn sm outline" href="/admin/reports/<%= key %>?<%= qs %>&format=csv">CSV</a>
+    <a class="btn sm outline" href="/admin/reports/<%= key %>?<%= qs %>&format=xlsx">Excel</a>
+    <a class="btn sm" href="/admin/reports/<%= key %>?<%= qs %>&format=pdf" target="_blank" rel="noopener"><%- include('../partials/icon', { name: 'printer' }) %>PDF</a>
+  </div>
+</div>
+<div class="card" style="padding:4px 8px">
+  <div class="table-wrap">
+    <table>
+      <thead><tr><% for (const c of report.columns) { %><th><%= c.label %></th><% } %></tr></thead>
+      <tbody>
+        <% if (!report.rows.length) { %><tr><td colspan="<%= report.columns.length %>"><div class="empty">Nothing to show yet.</div></td></tr><% } %>
+        <% for (const r of report.rows.slice(0, 1000)) { %><tr><% for (const c of report.columns) { %><td><%= r[c.key] ?? '' %></td><% } %></tr><% } %>
+      </tbody>
+    </table>
+  </div>
+  <% if (report.rows.length > 1000) { %><p class="small muted center">Showing the first 1,000 rows — export to see all.</p><% } %>
+</div>
+<%- include('../partials/admin-foot') %>

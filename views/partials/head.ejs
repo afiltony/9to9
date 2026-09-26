@@ -1,0 +1,55 @@
+<%
+  const c = content || {};
+  const theme = c.theme || {};
+  const siteTitle = '9 TO 9 Meet – 24 Hour God Experience';
+  const pageTitle = typeof title !== 'undefined' && title ? `${title} · 9 TO 9 Meet` : siteTitle;
+  const desc = typeof description !== 'undefined' && description ? description
+    : `${event ? event.subtitle + '. ' : ''}10 October 9 AM to 11 October 9 AM${event && event.venue ? ' at ' + event.venue : ''}. Register online and book your activity slots.`;
+  const heroImg = event && event.hero_image_path ? `/media/${event.hero_image_path}` : '/static/img/poster.jpg';
+  const navLink = (href, label) => `<a href="${href}"${path === href ? ' aria-current="page"' : ''}>${label}</a>`;
+%><!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title><%= pageTitle %></title>
+  <meta name="description" content="<%= desc %>">
+  <link rel="canonical" href="<%= baseUrl + path %>">
+  <meta name="theme-color" content="<%= theme.primary || '#525f6d' %>">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="9 TO 9 Meet">
+  <meta property="og:title" content="<%= pageTitle %>">
+  <meta property="og:description" content="<%= desc %>">
+  <meta property="og:url" content="<%= baseUrl + path %>">
+  <meta property="og:image" content="<%= baseUrl + heroImg %>">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="<%= pageTitle %>">
+  <meta name="twitter:description" content="<%= desc %>">
+  <meta name="twitter:image" content="<%= baseUrl + heroImg %>">
+  <link rel="preload" href="/static/fonts/roboto-slab/files/roboto-slab-latin-900-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/static/fonts/roboto/files/roboto-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/static/css/app.css">
+  <% if (theme.primary) { %><style>:root { --primary: <%= theme.primary %>; --secondary: <%= theme.secondary %>; }</style><% } %>
+  <script src="/static/js/boot.js"></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/" aria-label="9 TO 9 Meet home">
+      <span class="brand-mark"><% if (event && event.logo_path) { %><img src="/media/<%= event.logo_path %>" alt=""><% } else { %>9·9<% } %></span>
+      <span class="brand-text"><strong>9 TO 9 MEET</strong><span>24 Hour God Experience</span></span>
+    </a>
+    <button class="menu-toggle" type="button" aria-controls="site-nav" aria-expanded="false" data-menu-toggle>
+      <%- include('icon', { name: 'menu' }) %><span class="sr-only">Menu</span>
+    </button>
+    <nav class="site-nav" id="site-nav" aria-label="Main">
+      <%- navLink('/schedule', 'Schedule') %>
+      <%- navLink('/activities', 'Activities') %>
+      <%- navLink('/about', 'About') %>
+      <%- navLink('/contact', 'Contact') %>
+      <% if (state && state.open) { %><a class="btn gold" href="/register">Register now</a><% } %>
+    </nav>
+  </div>
+</header>
+<main id="main">

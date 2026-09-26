@@ -1,0 +1,29 @@
+<%- include('../partials/admin-head') %>
+<div class="page-title">
+  <div><h1>Users &amp; roles</h1><div class="sub">Staff and volunteer accounts</div></div>
+  <a class="btn sm" href="/admin/users/new">+ New user</a>
+</div>
+<div class="card" style="padding:4px 8px">
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Last login</th><th></th></tr></thead>
+      <tbody>
+        <% for (const u of users) { %>
+          <tr>
+            <td><strong><%= u.name %></strong><%= u.id === admin.id ? ' (you)' : '' %></td>
+            <td><%= u.email %></td>
+            <td><span class="badge brand"><%= u.role.replace(/_/g, ' ') %></span></td>
+            <td><span class="badge <%= u.active ? 'open' : 'closed' %>"><%= u.active ? 'Active' : 'Disabled' %></span></td>
+            <td class="small muted"><%= u.last_login_at ? fmt.dateTime(u.last_login_at) : 'Never' %></td>
+            <td><a class="btn sm outline" href="/admin/users/<%= u.id %>">Edit</a></td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+<section class="card">
+  <h2>What each role can do</h2>
+  <dl class="kv"><% for (const r of roles) { %><dt><span class="badge brand"><%= r.replace(/_/g, ' ') %></span></dt><dd><%= roleInfo[r] %></dd><% } %></dl>
+</section>
+<%- include('../partials/admin-foot') %>

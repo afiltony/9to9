@@ -1,0 +1,29 @@
+<%- include('../partials/admin-head') %>
+<div class="page-title">
+  <div><h1>Activities</h1><div class="sub">Changes appear on the website and registration form immediately</div></div>
+  <div class="actions"><a class="btn sm outline" href="/admin/slots">All time slots</a><a class="btn sm" href="/admin/activities/new">+ New activity</a></div>
+</div>
+<div class="card" style="padding:4px 8px">
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>#</th><th>Activity</th><th>Venue</th><th class="num">Capacity / slot</th><th>Booking</th><th class="num">Slots</th><th class="num">Booked</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        <% if (!activities.length) { %><tr><td colspan="9"><div class="empty">No activities yet.</div></td></tr><% } %>
+        <% for (const a of activities) { %>
+          <tr>
+            <td class="muted"><%= a.sort_order %></td>
+            <td><a href="/admin/activities/<%= a.id %>"><strong><%= a.name %></strong></a></td>
+            <td><%= a.venue || '—' %></td>
+            <td class="num"><%= a.capacity ?? 'No limit' %></td>
+            <td><span class="badge <%= a.requires_slot ? 'brand' : '' %>"><%= a.requires_slot ? 'Bookable' : 'Open to all' %></span></td>
+            <td class="num"><%= a.slot_count %></td>
+            <td class="num"><%= a.booked %></td>
+            <td><span class="badge <%= a.active ? 'open' : 'closed' %>"><%= a.active ? 'Active' : 'Hidden' %></span></td>
+            <td><a class="btn sm outline" href="/admin/activities/<%= a.id %>">Edit</a></td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+<%- include('../partials/admin-foot') %>
