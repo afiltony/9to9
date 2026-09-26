@@ -1,5 +1,5 @@
 <%- include('partials/head') %>
-<% const heroImg = event.hero_image_path ? `/media/${event.hero_image_path}` : '/static/img/poster.jpg'; %>
+<% const heroImg = event.hero_image_path ? `/media/${event.hero_image_path}` : '/static/img/poster.jpg?v=' + v; %>
 <section class="hero" style="--hero-img: url('<%= heroImg %>')" aria-labelledby="hero-title">
   <div class="container hero-copy">
     <h1 class="wordmark" id="hero-title">9 to 9 meet</h1>
