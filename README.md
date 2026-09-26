@@ -119,7 +119,8 @@ Hostinger's control panel changes from time to time, so treat the menu names bel
 2. **App:** hPanel → *Websites* → add a **Node.js** web app (upload a zip of this folder without `node_modules`,
    or connect a GitHub repository).
    - Node version: 20 or newer
-   - Entry file: `server.js` · Start command: `npm start`
+   - Entry file: `server.cjs` · Start command: `npm start`
+   - If startup fails, the site shows a "not running yet" page naming the missing setting or database error
 3. **Environment variables** (in the Node.js app settings): everything from `.env.example`, with
    `NODE_ENV=production`, the real `BASE_URL`, a new `SESSION_SECRET`, the Hostinger DB credentials, and
    `AUTO_MIGRATE=true`.

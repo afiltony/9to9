@@ -2,9 +2,9 @@
   "name": "nine-to-nine-meet",
   "version": "0.1.0",
   "description": "9 TO 9 MEET – youth event registration, slot booking, PDF cards and QR check-in",
-  "main": "server.js",
+  "main": "server.cjs",
   "scripts": {
-    "start": "node server.js",
+    "start": "node server.cjs",
     "dev": "node --watch server.js",
     "migrate": "node scripts/migrate.js",
     "seed": "node scripts/seed.js",
