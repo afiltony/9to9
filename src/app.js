@@ -11,6 +11,9 @@ import manageRoutes from './routes/manage.js';
 import publicRoutes, { loadEvent } from './routes/public.js';
 import reportRoutes from './routes/reports.js';
 
+// changes on every deploy/restart, so browsers and the CDN fetch fresh CSS and JS
+const ASSET_VERSION = Date.now().toString(36);
+
 export function createApp() {
   const app = express();
   app.set('trust proxy', config.trustProxy);
@@ -60,6 +63,7 @@ export function createApp() {
     if (req.session.flash) delete req.session.flash;
     res.locals.path = req.path;
     res.locals.baseUrl = config.baseUrl;
+    res.locals.v = ASSET_VERSION;
     // set by loadEvent; defaults keep error pages renderable without an event
     res.locals.event = null;
     res.locals.content = null;
@@ -88,7 +92,7 @@ export function createApp() {
   app.use((err, req, res, next) => {
     console.error(err);
     // the error may have happened before the locals middleware ran
-    if (!res.locals.fmt) Object.assign(res.locals, { fmt, admin: null, can: () => false, csrf: () => '', path: req.path, flash: null, baseUrl: config.baseUrl, isAdminArea: false, event: null, content: null, state: null });
+    if (!res.locals.fmt) Object.assign(res.locals, { v: ASSET_VERSION, fmt, admin: null, can: () => false, csrf: () => '', path: req.path, flash: null, baseUrl: config.baseUrl, isAdminArea: false, event: null, content: null, state: null });
     res.status(err.status || 500).render('error', {
       title: 'Something went wrong',
       message: 'An unexpected error occurred. Please try again, or contact the help desk if it keeps happening.',

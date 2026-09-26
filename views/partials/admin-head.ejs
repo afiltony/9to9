@@ -28,9 +28,9 @@
   <meta name="robots" content="noindex, nofollow">
   <title><%= typeof title !== 'undefined' && title ? title + ' · ' : '' %>9 TO 9 Admin</title>
   <meta name="theme-color" content="<%= theme.primary || '#1c2a5e' %>">
-  <link rel="stylesheet" href="/static/css/app.css">
+  <link rel="stylesheet" href="/static/css/app.css?v=<%= typeof v !== 'undefined' ? v : '' %>">
   <% if (theme.primary) { %><style>:root { --primary: <%= theme.primary %>; --secondary: <%= theme.secondary %>; }</style><% } %>
-  <script src="/static/js/boot.js"></script>
+  <script src="/static/js/boot.js?v=<%= typeof v !== 'undefined' ? v : '' %>"></script>
 </head>
 <body class="admin-body">
 <a class="skip-link" href="#main">Skip to content</a>

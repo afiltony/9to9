@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
   <title><%= title %> · 9 TO 9 Meet</title>
-  <link rel="stylesheet" href="/static/css/app.css">
+  <link rel="stylesheet" href="/static/css/app.css?v=<%= typeof v !== 'undefined' ? v : '' %>">
   <% if (content && content.theme) { %><style>:root { --primary: <%= content.theme.primary %>; --secondary: <%= content.theme.secondary %>; }</style><% } %>
 </head>
 <body>
@@ -37,6 +37,6 @@
     <p class="center small" style="margin:18px 0 0"><a href="/">← Back to the event site</a></p>
   </div>
 </main>
-<script src="/static/js/common.js"></script>
+<script src="/static/js/common.js?v=<%= typeof v !== 'undefined' ? v : '' %>"></script>
 </body>
 </html>

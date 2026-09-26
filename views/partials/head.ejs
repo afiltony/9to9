@@ -29,9 +29,9 @@
   <meta name="twitter:image" content="<%= baseUrl + heroImg %>">
   <link rel="preload" href="/static/fonts/roboto-slab/files/roboto-slab-latin-900-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/static/fonts/roboto/files/roboto-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/static/css/app.css">
+  <link rel="stylesheet" href="/static/css/app.css?v=<%= typeof v !== 'undefined' ? v : '' %>">
   <% if (theme.primary) { %><style>:root { --primary: <%= theme.primary %>; --secondary: <%= theme.secondary %>; }</style><% } %>
-  <script src="/static/js/boot.js"></script>
+  <script src="/static/js/boot.js?v=<%= typeof v !== 'undefined' ? v : '' %>"></script>
 </head>
 <body<%- showMobileCta ? ' class="has-mobile-cta"' : '' %>>
 <a class="skip-link" href="#main">Skip to content</a>
