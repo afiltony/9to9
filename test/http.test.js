@@ -104,12 +104,12 @@ describe('public registration over HTTP', () => {
   });
 
   test('missing photo and invalid fields re-render the form with values kept', async () => {
-    const res = await registerViaHttp(client(), { mobile: '123', last_name: 'Keepme' }, [], false);
+    const res = await registerViaHttp(client(), { mobile: '123', first_name: 'Keepme Person' }, [], false);
     assert.equal(res.status, 422);
     const html = await res.text();
     assert.match(html, /Please add a photograph/);
     assert.match(html, /valid phone number/);
-    assert.match(html, /value="Keepme"/);
+    assert.match(html, /value="Keepme Person"/);
   });
 
   test('a photo over 1 MB is reduced automatically, not refused', async () => {
@@ -156,11 +156,11 @@ describe('public registration over HTTP', () => {
   test('a full slot shows a clear message and keeps the rest of the form', async () => {
     const slot = await slotFor('Meet with Bishop', '10:00:00');
     await query('UPDATE activity_slots SET capacity = 0 WHERE id = ?', [slot.id]);
-    const res = await registerViaHttp(client(), { last_name: 'Fullslot' }, [slot.id]);
+    const res = await registerViaHttp(client(), { first_name: 'Fullslot Person' }, [slot.id]);
     assert.equal(res.status, 409);
     const html = await res.text();
     assert.match(html, /just filled up/);
-    assert.match(html, /value="Fullslot"/);
+    assert.match(html, /value="Fullslot Person"/);
   });
 
   test('unknown document links return 404', async () => {

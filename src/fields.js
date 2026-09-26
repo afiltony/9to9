@@ -19,10 +19,12 @@ export const SECTIONS = [
 const text = (name, label, section, mode, extra = {}) => ({ name, label, section, mode, type: 'text', max: 100, ...extra });
 
 export const FIELDS = [
-  text('first_name', 'First name', 'personal', 'required', { locked: true, autocomplete: 'given-name' }),
-  text('middle_name', 'Middle name', 'personal', 'optional', { autocomplete: 'additional-name' }),
-  text('last_name', 'Last name', 'personal', 'required', { autocomplete: 'family-name' }),
-  text('preferred_name', 'Preferred name (printed on card)', 'personal', 'optional'),
+  // one name field: stored in first_name and printed on the card as typed
+  text('first_name', 'Full name (as printed on your card)', 'personal', 'required', { locked: true, autocomplete: 'name',
+    help: 'Type your name in English letters, exactly as it should appear on your card.' }),
+  text('middle_name', 'Middle name', 'personal', 'hidden', { autocomplete: 'additional-name' }),
+  text('last_name', 'Last name', 'personal', 'hidden', { autocomplete: 'family-name' }),
+  text('preferred_name', 'Preferred name (printed on card)', 'personal', 'hidden'),
   { name: 'date_of_birth', label: 'Date of birth', section: 'personal', mode: 'required', type: 'date' },
   { name: 'gender', label: 'Gender', section: 'personal', mode: 'required', type: 'select', options: GENDERS },
   { name: 'profile_photo', label: 'Profile photograph', section: 'personal', mode: 'required', type: 'photo',
@@ -38,13 +40,13 @@ export const FIELDS = [
   text('pin_code', 'PIN code', 'contact', 'optional', { max: 20, inputmode: 'numeric' }),
   text('country', 'Country', 'contact', 'optional', { default: 'India' }),
 
-  text('parish', 'Parish / Church', 'church', 'required', { max: 255 }),
-  text('diocese', 'Diocese', 'church', 'optional', { max: 255 }),
-  text('organization', 'Organization / Movement', 'church', 'optional', { max: 255 }),
-  text('institution', 'School / College / Institution', 'church', 'optional', { max: 255 }),
-  text('youth_group', 'Youth group', 'church', 'optional', { max: 255 }),
-  text('coordinator_name', 'Coordinator name', 'church', 'optional', { max: 200 }),
-  text('coordinator_mobile', 'Coordinator mobile', 'church', 'optional', { type: 'tel', max: 20 }),
+  text('parish', 'Parish / Church', 'church', 'hidden', { max: 255 }),
+  text('diocese', 'Diocese', 'church', 'hidden', { max: 255 }),
+  text('organization', 'Organization / Movement', 'church', 'hidden', { max: 255 }),
+  text('institution', 'School / College / Institution', 'church', 'hidden', { max: 255 }),
+  text('youth_group', 'Youth group', 'church', 'hidden', { max: 255 }),
+  text('coordinator_name', 'Coordinator name', 'church', 'hidden', { max: 200 }),
+  text('coordinator_mobile', 'Coordinator mobile', 'church', 'hidden', { type: 'tel', max: 20 }),
 
   text('emergency_name', 'Contact name', 'emergency', 'required', { max: 200 }),
   text('emergency_relationship', 'Relationship', 'emergency', 'required'),
@@ -53,13 +55,13 @@ export const FIELDS = [
   text('emergency_email', 'Email', 'emergency', 'optional', { type: 'email', max: 255 }),
   { name: 'emergency_address', label: 'Address', section: 'emergency', mode: 'optional', type: 'textarea', max: 500 },
 
-  { name: 'accommodation_required', label: 'I need accommodation', section: 'requirements', mode: 'optional', type: 'checkbox' },
-  { name: 'arrival_at', label: 'Arrival (date & time)', section: 'requirements', mode: 'optional', type: 'datetime-local', showIf: 'accommodation_required' },
-  { name: 'departure_at', label: 'Departure (date & time)', section: 'requirements', mode: 'optional', type: 'datetime-local', showIf: 'accommodation_required' },
-  { name: 'accommodation_notes', label: 'Special accommodation requirement', section: 'requirements', mode: 'optional', type: 'textarea', max: 500, showIf: 'accommodation_required' },
-  { name: 'food_required', label: 'I need food', section: 'requirements', mode: 'optional', type: 'checkbox' },
-  { name: 'food_preference', label: 'Food preference', section: 'requirements', mode: 'optional', type: 'select', options: FOOD_PREFERENCES, showIf: 'food_required' },
-  { name: 'dietary_notes', label: 'Other dietary requirement', section: 'requirements', mode: 'optional', type: 'textarea', max: 500, showIf: 'food_required' },
+  { name: 'accommodation_required', label: 'I need accommodation', section: 'requirements', mode: 'hidden', type: 'checkbox' },
+  { name: 'arrival_at', label: 'Arrival (date & time)', section: 'requirements', mode: 'hidden', type: 'datetime-local', showIf: 'accommodation_required' },
+  { name: 'departure_at', label: 'Departure (date & time)', section: 'requirements', mode: 'hidden', type: 'datetime-local', showIf: 'accommodation_required' },
+  { name: 'accommodation_notes', label: 'Special accommodation requirement', section: 'requirements', mode: 'hidden', type: 'textarea', max: 500, showIf: 'accommodation_required' },
+  { name: 'food_required', label: 'I need food', section: 'requirements', mode: 'hidden', type: 'checkbox' },
+  { name: 'food_preference', label: 'Food preference', section: 'requirements', mode: 'hidden', type: 'select', options: FOOD_PREFERENCES, showIf: 'food_required' },
+  { name: 'dietary_notes', label: 'Other dietary requirement', section: 'requirements', mode: 'hidden', type: 'textarea', max: 500, showIf: 'food_required' },
 ];
 
 export const CONSENTS = [

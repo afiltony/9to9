@@ -274,6 +274,8 @@ export async function registerParticipant(eventId, values, slotIds, { photoPath 
       profile_photo_path: photoPath,
     };
     for (const col of PARTICIPANT_COLUMNS) {
+      // fields hidden on the form are not collected: leave them to the column defaults
+      if (!(col in values)) continue;
       const v = values[col];
       participant[col] = typeof v === 'boolean' ? (v ? 1 : 0) : v ?? null;
     }

@@ -130,7 +130,10 @@ function drawIdFront(doc, event, p, x, y) {
   drawPhoto(doc, p, x + (W - 60) / 2, y + 51, 60, 74, secondary);
 
   const name = displayName(p).toUpperCase();
-  doc.font('Heading').fontSize(10);
+  // full names vary in length: shrink the font until the name fits on two lines
+  let size = 10.5;
+  doc.font('Heading').fontSize(size);
+  while (size > 6.5 && doc.heightOfString(name, { width: W - 14 }) > 2.6 * size) doc.fontSize(size -= 0.5);
   const nameH = Math.min(25, doc.heightOfString(name, { width: W - 14 }));
   doc.fillColor(INK).text(name, x + 7, y + 130 + (25 - nameH) / 2, { width: W - 14, align: 'center', height: 26, ellipsis: true });
   doc.fillColor(primary).font('BodyBold').fontSize(8)
@@ -159,16 +162,24 @@ function drawIdBack(doc, event, p, x, y) {
   doc.fillColor('#ffffff').font('Heading').fontSize(7.5).text('PARTICIPANT', x + pad, y + 6.5, { characterSpacing: 0.8, lineBreak: false });
 
   let cy = y + 29;
-  const row = (label, value) => {
+  const row = (label, value, { wrap = false } = {}) => {
     doc.fillColor(MUTED).font('BodyMed').fontSize(5).text(label.toUpperCase(), x + pad, cy, { width: W - pad * 2, characterSpacing: 0.3, lineBreak: false });
-    doc.fillColor(INK).font('BodyBold').fontSize(6.8).text(value || '—', x + pad, cy + 6, { width: W - pad * 2, height: 9, ellipsis: true, lineBreak: false });
-    cy += 17;
+    doc.fillColor(INK).font('BodyBold').fontSize(6.8);
+    const text = value || '—';
+    // a long full name may use two lines; everything else stays on one
+    const lines = wrap && doc.heightOfString(text, { width: W - pad * 2 }) > 10 ? 2 : 1;
+    doc.text(text, x + pad, cy + 6, lines === 2
+      ? { width: W - pad * 2, height: 18, ellipsis: true }
+      : { width: W - pad * 2, height: 9, ellipsis: true, lineBreak: false });
+    cy += 17 + (lines - 1) * 8.5;
   };
-  row('Name', fullName(p));
+  row('Name', fullName(p), { wrap: true });
   row('Registration', p.registration_number);
   row('Place', [p.locality, p.district].filter(Boolean).join(', '));
-  row('Parish', p.parish);
-  row('Organization', p.organization || p.institution || p.youth_group);
+  // parish and organization are optional form fields: only print them when collected
+  if (p.parish) row('Parish', p.parish);
+  const org = p.organization || p.institution || p.youth_group;
+  if (org) row('Organization', org);
 
   cy += 1;
   doc.moveTo(x + pad, cy).lineTo(x + W - pad, cy).lineWidth(0.5).stroke(LINE);

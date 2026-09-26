@@ -94,11 +94,13 @@
                   <%= f.max && f.type !== 'date' && f.type !== 'datetime-local' ? `maxlength=${f.max}` : '' %> <%= f.required ? 'required' : '' %>
                   <% if (f.autocomplete) { %>autocomplete="<%= f.autocomplete %>"<% } %>
                   <% if (f.inputmode) { %>inputmode="<%= f.inputmode %>"<% } %>
+                  <% if (f.name === 'first_name') { %>placeholder="e.g. Anna Joseph" autocapitalize="words"<% } %>
                   <% if (f.type === 'tel') { %>inputmode="tel" pattern="[0-9 +\-]{8,20}"<% } %>
                   <% if (f.type === 'date') { %>max="<%= event.start_at.slice(0, 10) %>" min="1930-01-01"<% } %>>
                 <% if (f.name === 'date_of_birth') { %><div class="help" id="age-display" aria-live="polite"></div><% } %>
               <% } %>
             <% } %>
+            <% if (f.help && f.type !== 'photo') { %><div class="help"><%= f.help %></div><% } %>
             <% if (err) { %><div class="error-text" role="alert"><%= err %></div><% } %>
             </div>
           <% } %>

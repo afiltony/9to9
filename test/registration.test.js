@@ -27,12 +27,12 @@ describe('validation', () => {
     assert.deepEqual(errors, {});
     assert.equal(values.mobile, '9847012345');
     assert.equal(values.email, 'john@example.com');
-    assert.equal(values.accommodation_required, false);
+    assert.ok(!('accommodation_required' in values), 'hidden fields are not collected');
   });
 
   test('reports missing required fields and consents', () => {
-    const { errors } = validateRegistration(event, { first_name: 'A' });
-    for (const f of ['last_name', 'mobile', 'date_of_birth', 'parish', 'emergency_mobile', 'consent_information', 'consent_rules']) {
+    const { errors } = validateRegistration(event, {});
+    for (const f of ['first_name', 'mobile', 'date_of_birth', 'emergency_mobile', 'consent_information', 'consent_rules']) {
       assert.ok(errors[f], `expected an error for ${f}`);
     }
     assert.ok(!errors.consent_media, 'media consent is optional');
@@ -54,10 +54,11 @@ describe('validation', () => {
     assert.ok(validateRegistration(noPhoto, validBody({ first_name: '' })).errors.first_name, 'locked fields cannot be hidden');
   });
 
-  test('accommodation details are dropped when accommodation is not requested', () => {
-    const { values } = validateRegistration(event, validBody({ arrival_at: '2099-10-10T08:00' }));
+  test('accommodation, when switched back on in settings, drops details unless requested', () => {
+    const withAccommodation = { ...event, form_config: JSON.stringify({ accommodation_required: 'optional', arrival_at: 'optional' }) };
+    const { values } = validateRegistration(withAccommodation, validBody({ arrival_at: '2099-10-10T08:00' }));
     assert.equal(values.arrival_at, null);
-    const on = validateRegistration(event, validBody({ accommodation_required: 'on', arrival_at: '2099-10-10T08:00' }));
+    const on = validateRegistration(withAccommodation, validBody({ accommodation_required: 'on', arrival_at: '2099-10-10T08:00' }));
     assert.equal(on.values.arrival_at, '2099-10-10 08:00:00');
   });
 });

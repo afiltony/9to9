@@ -75,9 +75,12 @@ describe('public pages', () => {
     assert.match(html, /Sun 11 Oct/);
   });
 
-  test('registration wizard has all eight steps', async () => {
+  test('registration wizard has six steps with one name field', async () => {
     const html = await (await client().request('/register')).text();
-    for (const step of ['Personal', 'Contact', 'Organization', 'Emergency', 'Requirements', 'Activities', 'Consent', 'Confirm']) {
+    assert.ok(!/<span class="t">(Organization|Requirements)<\/span>/.test(html), 'organization and requirements steps are off');
+    assert.match(html, /Full name \(as printed on your card\)/);
+    assert.ok(!html.includes('name="last_name"') && !html.includes('name="parish"') && !html.includes('name="accommodation_required"'));
+    for (const step of ['Personal', 'Contact', 'Emergency', 'Activities', 'Consent', 'Confirm']) {
       assert.match(html, new RegExp(`<span class="t">${step}</span>`));
     }
   });
@@ -155,8 +158,8 @@ describe('bulk card printing', () => {
 
   test('reception lookup by name lists matches', async () => {
     const c = await staff('CHECKIN_STAFF');
-    await register({ mobile: '9330000001', first_name: 'Zacharias', last_name: 'Kurian' });
-    await register({ mobile: '9330000002', first_name: 'Zacharias', last_name: 'Thomas' });
+    await register({ mobile: '9330000001', first_name: 'Zacharias Kurian' });
+    await register({ mobile: '9330000002', first_name: 'Zacharias Thomas' });
     const html = await (await c.post('/admin/checkin/lookup', { _csrf: c.csrf, registration_number: 'Zacharias', station: 'EVENT' })).text();
     assert.match(html, /2 matches/);
     const one1 = await c.post('/admin/checkin/lookup', { _csrf: c.csrf, registration_number: 'Zacharias Kurian', station: 'EVENT' });
@@ -183,7 +186,7 @@ describe('reports', () => {
 
   test('CSV export neutralizes spreadsheet formulas', async () => {
     const c = await staff('REPORT_MANAGER');
-    await register({ mobile: '9340000001', parish: '=HYPERLINK("http://x")' });
+    await register({ mobile: '9340000001', district: '=HYPERLINK("http://x")' });
     const csv = await (await c.request('/admin/reports/participants?format=csv')).text();
     assert.match(csv, /"'=HYPERLINK\(""http:\/\/x""\)"/);
   });
@@ -245,7 +248,7 @@ describe('activity and slot management', () => {
       body: (() => { const f = new FormData(); for (const [k, v] of Object.entries({
         _csrf: c.csrf, name: event.name, start_at: '2099-10-17T09:00', end_at: '2099-10-18T09:00', status: 'open', duplicate_rule: 'mobile_name',
         auto_approve: 'on', shift_slots: 'on', contact_phone: '+91 94969 35651', theme_primary: '#223366', theme_secondary: '#ffaa00',
-        field_diocese: 'hidden', food_options: 'Veg\nNon-veg',
+        field_diocese: 'hidden', field_food_required: 'optional', field_food_preference: 'optional', food_options: 'Veg\nNon-veg',
       })) f.append(k, v); return f; })(),
     });
     assert.equal(res.status, 303);
@@ -271,16 +274,16 @@ describe('activity and slot management', () => {
 describe('participant management', () => {
   test('admin edits details; the change is audited', async () => {
     const c = await staff('ADMIN');
-    const p = await register({ mobile: '9360000001', parish: 'Old Parish' });
+    const p = await register({ mobile: '9360000001', locality: 'Old Locality' });
     const form = await (await c.request(`/admin/participants/${p.id}/edit`)).text();
-    assert.match(form, /value="Old Parish"/);
+    assert.match(form, /value="Old Locality"/);
     const fd = new FormData();
-    for (const [k, v] of Object.entries({ ...validBody({ mobile: '9360000001', parish: 'New Parish' }), _csrf: c.csrf })) fd.append(k, v);
+    for (const [k, v] of Object.entries({ ...validBody({ mobile: '9360000001', locality: 'New Locality' }), _csrf: c.csrf })) fd.append(k, v);
     const res = await c.request(`/admin/participants/${p.id}/edit`, { method: 'POST', body: fd });
     assert.equal(res.status, 303);
-    assert.equal((await one('SELECT parish FROM participants WHERE id = ?', [p.id])).parish, 'New Parish');
+    assert.equal((await one('SELECT locality FROM participants WHERE id = ?', [p.id])).locality, 'New Locality');
     const log = await one(`SELECT old_value, new_value FROM audit_logs WHERE participant_id = ? AND action = 'PARTICIPANT_EDITED'`, [p.id]);
-    assert.match(JSON.stringify(log), /Old Parish/);
+    assert.match(JSON.stringify(log), /Old Locality/);
     for (const tab of ['overview', 'contact', 'emergency', 'activities', 'documents', 'checkins', 'history']) {
       assert.equal((await c.request(`/admin/participants/${p.id}?tab=${tab}`)).status, 200, tab);
     }
