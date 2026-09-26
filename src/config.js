@@ -6,8 +6,11 @@ export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '
 
 const env = process.env;
 
+// values pasted into hosting panels often carry stray spaces or newlines
+const clean = (v) => (typeof v === 'string' ? v.trim() : v);
+
 function required(name, fallback) {
-  const v = env[name] ?? fallback;
+  const v = clean(env[name]) || fallback;
   if (v === undefined || v === '') throw new Error(`Missing required environment variable ${name}`);
   return v;
 }
@@ -27,10 +30,12 @@ export const config = {
   // event-local offset, used for the DB session time zone so NOW() matches the schedule
   tzOffset: env.TZ_OFFSET || '+05:30',
   db: {
-    host: env.DB_HOST || (isProd ? 'localhost' : '127.0.0.1'),
+    host: clean(env.DB_HOST) || (isProd ? 'localhost' : '127.0.0.1'),
+    // some shared hosts only accept local logins over the MySQL socket, e.g. /var/lib/mysql/mysql.sock
+    ...(clean(env.DB_SOCKET) ? { socketPath: clean(env.DB_SOCKET) } : {}),
     port: Number(env.DB_PORT || 3306),
     user: required('DB_USER', isProd ? undefined : 'root'),
-    password: isProd ? required('DB_PASSWORD') : env.DB_PASSWORD || '',
+    password: isProd ? required('DB_PASSWORD') : clean(env.DB_PASSWORD) || '',
     database: required('DB_NAME', isProd ? undefined : 'nine_to_nine'),
     connectionLimit: Number(env.DB_POOL_SIZE || 10),
   },
