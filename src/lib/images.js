@@ -4,8 +4,10 @@
 // one image at a time: decoding a large photo takes a few hundred MB of memory
 let queue = Promise.resolve();
 
-const SIDES = [1600, 1200, 1000, 800, 640, 480];
-const QUALITIES = [85, 75, 65, 55];
+// the card prints the photo at about 21 × 26 mm, so 1200 px is far more than needed; few, large
+// steps keep the worst case quick on slow shared-hosting CPUs
+const SIDES = [1200, 900, 640, 480];
+const QUALITIES = [82, 68, 55];
 
 /**
  * Re-encodes an image as JPEG, stepping down size and quality until it fits in maxBytes.
