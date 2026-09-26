@@ -1,6 +1,14 @@
 </main>
 <footer class="site-footer">
   <div class="container">
+    <div class="footer-brand">
+      <a href="/" aria-label="9 TO 9 Meet home"><img class="footer-logo" src="<%= event && event.logo_path ? '/media/' + event.logo_path : '/static/img/logo-wordmark.jpg' %>" alt="9 TO 9 Meet" width="480" height="149" loading="lazy"></a>
+      <div>
+        <strong>24 Hour God Experience</strong>
+        <span><%= content && content.hero_kicker ? content.hero_kicker : '' %><%= event ? ' · ' + fmt.shortDate(event.start_at) + ' – ' + fmt.shortDate(event.end_at) + (event.venue ? ' · ' + event.venue : '') : '' %></span>
+      </div>
+      <% if (state && state.open) { %><a class="btn white sm footer-cta" href="/register">Register now</a><% } %>
+    </div>
     <div class="footer-grid">
       <div>
         <h4>The event</h4>
