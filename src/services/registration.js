@@ -239,6 +239,15 @@ export async function registerParticipant(eventId, values, slotIds, { photoPath 
         });
       }
 
+      // one time slot per activity
+      const repeated = slots.filter((s) => slots.some((o) => o !== s && o.activity_id === s.activity_id));
+      if (repeated.length) {
+        throw new RegistrationError(
+          `You can book only one time slot for ${repeated[0].activity_name}. Please keep one and untick the others.`,
+          { code: 'SAME_ACTIVITY', slotIds: repeated.map((s) => s.id) },
+        );
+      }
+
       if (!event.allow_overlapping_bookings) {
         const conflicts = findConflicts(slots);
         if (conflicts.length) {
@@ -400,6 +409,13 @@ export async function addBooking(participantId, slotId, { adminId = null, ip = n
     if (!force) {
       if (slot.capacity != null && slot.registration_count >= slot.capacity) {
         throw new RegistrationError(`${slot.activity_name} ${timeRange(slot.start_at, slot.end_at)} is full.`, { code: 'FULL' });
+      }
+      const [[sibling]] = await conn.query(
+        `SELECT s.start_at, s.end_at FROM participant_slots ps JOIN activity_slots s ON s.id = ps.slot_id
+          WHERE ps.participant_id = ? AND ps.status = 'confirmed' AND s.activity_id = ? LIMIT 1`,
+        [participantId, slot.activity_id]);
+      if (sibling) {
+        throw new RegistrationError(`Already booked for ${slot.activity_name} (${timeRange(sibling.start_at, sibling.end_at)}). Only one time slot per activity — remove that booking first.`, { code: 'SAME_ACTIVITY' });
       }
       if (!event.allow_overlapping_bookings) {
         const [clash] = await conn.query(

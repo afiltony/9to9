@@ -13,17 +13,17 @@
 @font-face { font-family: "Roboto"; font-weight: 700; font-display: swap; src: url(/static/fonts/roboto/files/roboto-latin-700-normal.woff2) format("woff2"); }
 
 :root {
-  /* slate palette: --primary (dark slate) and --secondary (light slate highlight) come from Settings */
-  --primary: #525f6d;
-  --secondary: #c9ced6;
-  --heading: color-mix(in srgb, var(--primary) 78%, #fff 22%);
-  --kicker: #a8afb9;
-  --brace: #d9dce1;
+  /* fire palette: --primary (fire red) and --secondary (flame gold) come from Settings */
+  --primary: #ce2029;
+  --secondary: #ffb627;
+  --heading: color-mix(in srgb, var(--primary) 90%, #000);
+  --kicker: color-mix(in srgb, var(--primary) 45%, #fff);
+  --brace: color-mix(in srgb, var(--primary) 22%, #fff);
   --primary-dark: color-mix(in srgb, var(--primary) 80%, #000);
   --primary-soft: color-mix(in srgb, var(--primary) 7%, #fff);
   --primary-tint: color-mix(in srgb, var(--primary) 15%, #fff);
   --secondary-soft: color-mix(in srgb, var(--secondary) 30%, #fff);
-  --accent: #8f9aa7;
+  --accent: #f26b1d;
 
   --background: #ffffff;
   --surface: #ffffff;
@@ -561,7 +561,7 @@ h2, h3 { font-weight: 700; }
 .intro-text strong { color: var(--text); }
 
 /* photo hero */
-.hero { min-height: min(92vh, 860px); display: grid; align-items: center; background: #2c333b; text-align: center; }
+.hero { min-height: min(92vh, 860px); display: grid; align-items: center; background: #2a0b0b; text-align: center; }
 .hero::before { inset: 0; animation: none; background: var(--hero-img, none) center / cover no-repeat; filter: blur(6px) saturate(1.1); transform: scale(1.08); opacity: .9; }
 .hero::after { background: linear-gradient(180deg, rgb(20 26 32 / 55%), rgb(20 26 32 / 45%) 50%, rgb(20 26 32 / 70%)); mask-image: none; background-size: auto; }
 .hero .container { display: block; padding-top: 72px; padding-bottom: 72px; }
@@ -656,8 +656,8 @@ h2, h3 { font-weight: 700; }
 .metric.accent { background: var(--heading); border-color: var(--heading); }
 .avatar { background: var(--heading); color: #fff; }
 .event-pill { border-radius: var(--r-sm); font-family: var(--font-display); }
-.login-shell { background: #2c333b; }
-.login-shell::before { background: linear-gradient(160deg, var(--primary), #2c333b); }
+.login-shell { background: #2a0b0b; }
+.login-shell::before { background: linear-gradient(160deg, var(--primary), #2a0b0b); }
 .login-card .brand-text strong { font-size: 1.4rem; }
 
 /* =========================================================================

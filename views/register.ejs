@@ -110,7 +110,7 @@
       <fieldset class="card step" data-step="activities" data-title="Selected activities" aria-labelledby="h-activities">
         <div class="step-head">
           <div class="icon"><%- include('partials/icon', { name: 'calendar' }) %></div>
-          <div><h2 id="h-activities">Select your activities</h2><p>Tap a time to book it. Places are held when you confirm your registration.</p></div>
+          <div><h2 id="h-activities">Select your activities</h2><p>Tap a time to book it — one time slot per activity. Places are held when you confirm your registration.</p></div>
         </div>
         <div class="conflict-box" id="conflict-message" hidden role="alert" aria-live="assertive"></div>
         <div class="selected-bar" id="selected-bar" aria-live="polite"></div>
@@ -129,7 +129,7 @@
                    if (day !== lastDay) { lastDay = day; %><div class="day-sep"><%= day %></div><% } %>
                 <label class="slot<%= s.full ? ' full' : '' %><%= !s.open ? ' closed' : '' %><%= low ? ' low' : '' %><%= badSlots.has(s.id) ? ' bad' : '' %>">
                   <input type="checkbox" name="slots" value="<%= s.id %>"
-                         data-start="<%= s.start_at %>" data-end="<%= s.end_at %>" data-activity="<%= a.name %>"
+                         data-start="<%= s.start_at %>" data-end="<%= s.end_at %>" data-activity="<%= a.name %>" data-activity-id="<%= a.id %>"
                          data-time="<%= fmt.timeRange(s.start_at, s.end_at) %>" data-day="<%= day %>" data-venue="<%= a.venue || '' %>"
                          <%= selected.has(s.id) && !unavailable ? 'checked' : '' %> <%= unavailable ? 'disabled' : '' %>>
                   <span class="state" aria-hidden="true"></span>
@@ -165,6 +165,7 @@
             <div class="icon"><%- include('partials/icon', { name: 'checkCircle' }) %></div>
             <div><h2 id="confirm-title">Check your registration</h2><p>Make sure everything is correct — it will be printed on your card.</p></div>
           </div>
+          <div class="conflict-box" id="incomplete-message" hidden role="alert"></div>
           <div id="summary"></div>
         </div>
       </section>

@@ -11,6 +11,7 @@
   var btnNext = document.getElementById('btn-next');
   var btnSubmit = document.getElementById('btn-submit');
   var navInfo = document.getElementById('nav-info');
+  var incomplete = document.getElementById('incomplete-message');
   var allowOverlap = form.dataset.allowOverlap === '1';
   var DRAFT_KEY = 'nine2nine-register-draft';
   var current = 0;
@@ -177,6 +178,12 @@
     box.addEventListener('change', function () {
       form.querySelectorAll('.slot.conflict').forEach(function (el) { el.classList.remove('conflict'); });
       conflictBox.hidden = true;
+      // one time slot per activity: choosing another time moves the booking
+      if (box.checked) {
+        slotBoxes.forEach(function (o) {
+          if (o !== box && o.checked && o.dataset.activityId === box.dataset.activityId) o.checked = false;
+        });
+      }
       if (box.checked && !allowOverlap) {
         var clash = slotBoxes.find(function (o) { return o !== box && o.checked && overlaps(o, box); });
         if (clash) {
@@ -284,10 +291,20 @@
   });
 
   // ---------------------------------------------------------------- wizard navigation
-  function validateStep(i) {
-    var step = steps[i];
-    var controls = Array.prototype.slice.call(step.querySelectorAll('input, select, textarea'))
+  function stepControls(i) {
+    return Array.prototype.slice.call(steps[i].querySelectorAll('input, select, textarea'))
       .filter(function (el) { return !el.closest('[hidden]') && !el.disabled && el.type !== 'hidden'; });
+  }
+  // index of the first step with a missing or invalid answer (no messages shown), or -1
+  function firstIncomplete() {
+    for (var i = 0; i < steps.length; i++) {
+      if (!stepControls(i).every(function (el) { return el.checkValidity(); })) return i;
+    }
+    return -1;
+  }
+
+  function validateStep(i) {
+    var controls = stepControls(i);
     for (var k = 0; k < controls.length; k++) {
       var el = controls[k];
       var wrapper = el.closest('.field');
@@ -315,7 +332,14 @@
     var isLast = current === steps.length - 1;
     btnBack.hidden = current === 0;
     btnNext.hidden = isLast;
-    btnSubmit.hidden = !isLast;
+    // the submit button appears only on the review step, once every step is complete
+    var missing = isLast ? firstIncomplete() : -1;
+    btnSubmit.hidden = !isLast || missing !== -1;
+    incomplete.hidden = missing === -1;
+    if (missing !== -1) {
+      incomplete.innerHTML = '<strong>NOT COMPLETE YET</strong>Please finish the <b>' + escapeHtml(steps[missing].dataset.title || 'earlier') +
+        '</b> step before confirming. <button type="button" class="link-btn" data-goto="' + missing + '">Go to that step</button>';
+    }
     var key = steps[current].dataset.step;
     var n = chosen().length;
     navInfo.textContent = key === 'activities' ? n + (n === 1 ? ' activity selected' : ' activities selected') : 'Step ' + (current + 1) + ' of ' + steps.length;
@@ -349,9 +373,20 @@
   btnBack.addEventListener('click', function () { go(current - 1); });
   links.forEach(function (li, i) {
     li.querySelector('button').addEventListener('click', function () {
-      if (i <= furthest && (i < current || validateStep(current))) go(i);
+      if (i > furthest || (i > current && !validateStep(current))) return;
+      // jumping ahead stops at the first unfinished step
+      var missing = firstIncomplete();
+      if (i > current && missing !== -1 && missing < i) { go(missing, false); validateStep(missing); return; }
+      go(i);
     });
   });
+  incomplete.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-goto]');
+    if (b) { var i = Number(b.dataset.goto); go(i, false); validateStep(i); }
+  });
+  // re-check completeness as answers change (e.g. after fixing an earlier step)
+  form.addEventListener('input', updateNav);
+  form.addEventListener('change', updateNav);
   form.addEventListener('submit', function (e) {
     for (var i = 0; i < steps.length; i++) {
       if (!validateStep(i)) { e.preventDefault(); e.stopImmediatePropagation(); go(i, false); validateStep(i); return; }

@@ -3,8 +3,8 @@
 
 export const DEFAULT_CONTENT = {
   theme: {
-    primary: '#525f6d',
-    secondary: '#c9ced6',
+    primary: '#ce2029',
+    secondary: '#ffb627',
   },
   hero_kicker: 'Youth Camp Inspired by St. Carlo Acutis',
   hero_theme: 'Eyes Opened | Hearts on Fire',

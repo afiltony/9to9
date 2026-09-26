@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { after, before, beforeEach, describe, test } from 'node:test';
 import { closePool } from '../src/db.js';
 import {
-  RegistrationError, changeStatus, findConflicts, registerParticipant, validateRegistration,
+  RegistrationError, addBooking, changeStatus, findConflicts, registerParticipant, removeBooking, validateRegistration,
 } from '../src/services/registration.js';
 
 let event;
@@ -121,6 +121,20 @@ describe('registration', () => {
 
     await query('UPDATE events SET allow_overlapping_bookings = 1 WHERE id = ?', [event.id]);
     assert.ok((await register({}, [adoration.id, vr.id])).id);
+  });
+
+  test('only one time slot per activity, even when the times do not overlap', async () => {
+    await query('UPDATE events SET allow_overlapping_bookings = 1 WHERE id = ?', [event.id]);
+    const first = await slotFor('Rosary Making Workshop', '10:00:00');
+    const second = await slotFor('Rosary Making Workshop', '11:00:00');
+    await rejects(register({}, [first.id, second.id]), 'SAME_ACTIVITY');
+    assert.equal((await one('SELECT registration_count FROM activity_slots WHERE id = ?', [first.id])).registration_count, 0);
+
+    const p = await register({}, [first.id]);
+    await rejects(addBooking(p.id, second.id), 'SAME_ACTIVITY');
+    await removeBooking(p.id, first.id);
+    await addBooking(p.id, second.id);
+    assert.equal((await one('SELECT registration_count FROM activity_slots WHERE id = ?', [second.id])).registration_count, 1);
   });
 
   test('back-to-back slots do not conflict', () => {
