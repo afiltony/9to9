@@ -91,3 +91,8 @@
     document.addEventListener('change', function (e) { if (e.target.name === name) update(); });
   });
 })();
+
+// panels that are folded on phones start open on wider screens
+document.querySelectorAll('[data-open-desktop]').forEach(function (d) {
+  if (window.matchMedia('(min-width: 721px)').matches) d.open = true;
+});

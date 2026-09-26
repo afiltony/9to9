@@ -56,6 +56,7 @@
   <div>
     <header class="topbar">
       <button class="menu-btn" type="button" data-sidebar-toggle aria-controls="sidebar" aria-expanded="false"><%- include('icon', { name: 'menu' }) %><span class="sr-only">Menu</span></button>
+      <a class="topbar-brand" href="<%= can('participants.view') ? '/admin' : '/admin/checkin' %>"><span class="brand-mark">9·9</span><span class="sr-only">9 TO 9 Meet admin home</span></a>
       <% if (event) { %><span class="event-pill" title="Current event"><%- include('icon', { name: 'calendar' }) %><%= event.event_code %> · <%= fmt.shortDate(event.start_at) %>–<%= fmt.shortDate(event.end_at) %></span><% } %>
       <% if (can('participants.view')) { %>
         <form class="search" method="get" action="/admin/participants" role="search">

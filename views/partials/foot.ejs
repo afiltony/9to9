@@ -38,6 +38,12 @@
     </div>
   </div>
 </footer>
+<% if (state && state.open && path !== '/register' && !path.startsWith('/r/')) { %>
+<div class="mobile-cta">
+  <span class="txt"><strong>9 TO 9 Meet</strong><%= event ? fmt.shortDate(event.start_at) + ' – ' + fmt.shortDate(event.end_at) : '' %> · places are limited</span>
+  <a class="btn gold" href="/register">Register</a>
+</div>
+<% } %>
 <script src="/static/js/common.js"></script>
 </body>
 </html>

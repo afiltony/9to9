@@ -6,6 +6,7 @@
   const desc = typeof description !== 'undefined' && description ? description
     : `${event ? event.subtitle + '. ' : ''}10 October 9 AM to 11 October 9 AM${event && event.venue ? ' at ' + event.venue : ''}. Register online and book your activity slots.`;
   const heroImg = event && event.hero_image_path ? `/media/${event.hero_image_path}` : '/static/img/poster.jpg';
+  const showMobileCta = !!(state && state.open && path !== '/register' && !path.startsWith('/r/'));
   const navLink = (href, label) => `<a href="${href}"${path === href ? ' aria-current="page"' : ''}>${label}</a>`;
 %><!doctype html>
 <html lang="en">
@@ -32,7 +33,7 @@
   <% if (theme.primary) { %><style>:root { --primary: <%= theme.primary %>; --secondary: <%= theme.secondary %>; }</style><% } %>
   <script src="/static/js/boot.js"></script>
 </head>
-<body>
+<body<%- showMobileCta ? ' class="has-mobile-cta"' : '' %>>
 <a class="skip-link" href="#main">Skip to content</a>
 <header class="site-header">
   <div class="container">

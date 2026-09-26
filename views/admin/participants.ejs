@@ -13,8 +13,13 @@
 </div>
 
 <form class="card tight" method="get" action="/admin/participants" style="margin-bottom:16px">
-  <div class="filters">
-    <input class="wide" type="search" name="q" value="<%= filters.q %>" placeholder="Search name, reg. no, mobile, email, parish…" aria-label="Search">
+  <div class="row" style="flex-wrap:nowrap;margin-bottom:10px">
+    <input type="search" name="q" value="<%= filters.q %>" placeholder="Search name, reg. no, mobile, parish…" aria-label="Search" style="min-height:44px">
+    <button class="btn sm" type="submit" style="min-height:44px"><%- include('../partials/icon', { name: 'search' }) %><span class="sr-only">Search</span></button>
+  </div>
+  <details class="filters-panel" data-open-desktop<%= activeFilters ? ' open' : '' %>>
+  <summary class="filters-toggle btn sm outline" style="list-style:none;margin-bottom:10px">Filters<%= activeFilters ? ` (${activeFilters} on)` : '' %></summary>
+  <div class="filters filters-body">
     <select name="status" aria-label="Status">
       <option value="">Any status</option>
       <option value="active" <%= filters.status === 'active' ? 'selected' : '' %>>Approved + pending</option>
@@ -38,6 +43,7 @@
     <input type="hidden" name="sort" value="<%= filters.sort %>">
     <div class="row"><button class="btn sm" type="submit">Apply</button><% if (activeFilters || filters.q) { %><a class="small" href="/admin/participants">Clear</a><% } %></div>
   </div>
+  </details>
   <datalist id="dl-parish"><% for (const v of options.parishes) { %><option value="<%= v %>"><% } %></datalist>
   <datalist id="dl-district"><% for (const v of options.districts) { %><option value="<%= v %>"><% } %></datalist>
   <datalist id="dl-org"><% for (const v of options.organizations) { %><option value="<%= v %>"><% } %></datalist>
@@ -62,7 +68,7 @@
 
   <div class="card" style="padding:4px 8px">
     <div class="table-wrap">
-      <table>
+      <table class="ptable">
         <thead>
           <tr>
             <% if (can('documents.print')) { %><th style="width:32px"><input type="checkbox" data-select-all="ids" aria-label="Select all on this page"></th><% } %>
@@ -82,17 +88,17 @@
           <% if (!rows.length) { %><tr><td colspan="11"><div class="empty"><%- include('../partials/icon', { name: 'search' }) %>No participants match these filters.</div></td></tr><% } %>
           <% for (const r of rows) { %>
             <tr>
-              <% if (can('documents.print')) { %><td><input type="checkbox" name="ids" value="<%= r.id %>" aria-label="Select <%= r.registration_number %>"></td><% } %>
-              <td><a href="/admin/participants/<%= r.id %>"><strong><%= r.registration_number %></strong></a></td>
-              <td><% if (r.profile_photo_path) { %><img class="thumb" src="/admin/participants/<%= r.id %>/photo" alt="" loading="lazy"><% } else { %><span class="thumb" style="display:block"></span><% } %></td>
-              <td><a href="/admin/participants/<%= r.id %>"><%= fmt.fullName(r) %></a><div class="xs muted"><%= r.bookings %> slot<%= r.bookings == 1 ? '' : 's' %></div></td>
-              <td><%= r.mobile %></td>
-              <td><%= r.parish || '—' %><div class="xs muted"><%= r.organization || r.district || '' %></div></td>
-              <td><span class="badge <%= r.status %>"><%= r.status %></span></td>
-              <td><span class="badge <%= r.card_printed_at ? 'yes' : '' %>"><%= r.card_printed_at ? 'Printed' : 'Not yet' %></span></td>
-              <td><span class="badge <%= r.checked_in_at ? 'yes' : '' %>"><%= r.checked_in_at ? fmt.time(r.checked_in_at) : '—' %></span></td>
-              <td class="xs muted" style="white-space:nowrap"><%= fmt.shortDate(r.created_at) %><br><%= fmt.time(r.created_at) %></td>
-              <td>
+              <% if (can('documents.print')) { %><td class="c-check"><input type="checkbox" name="ids" value="<%= r.id %>" aria-label="Select <%= r.registration_number %>"></td><% } %>
+              <td class="c-reg"><a href="/admin/participants/<%= r.id %>"><strong><%= r.registration_number %></strong></a></td>
+              <td class="c-photo"><% if (r.profile_photo_path) { %><img class="thumb" src="/admin/participants/<%= r.id %>/photo" alt="" loading="lazy"><% } else { %><span class="thumb" style="display:block"></span><% } %></td>
+              <td class="c-name"><a href="/admin/participants/<%= r.id %>"><%= fmt.fullName(r) %></a><div class="xs muted"><%= r.bookings %> slot<%= r.bookings == 1 ? '' : 's' %></div></td>
+              <td class="c-mobile"><%= r.mobile %></td>
+              <td class="c-parish"><%= r.parish || '—' %><div class="xs muted"><%= r.organization || r.district || '' %></div></td>
+              <td class="c-status"><span class="badge <%= r.status %>"><%= r.status %></span></td>
+              <td class="c-card"><span class="badge <%= r.card_printed_at ? 'yes' : '' %>"><%= r.card_printed_at ? 'Printed' : 'Not yet' %></span></td>
+              <td class="c-checkin"><span class="badge <%= r.checked_in_at ? 'yes' : '' %>"><%= r.checked_in_at ? fmt.time(r.checked_in_at) : '—' %></span></td>
+              <td class="c-created xs muted" style="white-space:nowrap"><%= fmt.shortDate(r.created_at) %><br><%= fmt.time(r.created_at) %></td>
+              <td class="c-actions">
                 <div class="actions" style="flex-wrap:nowrap">
                   <a class="btn sm outline" href="/admin/participants/<%= r.id %>">View</a>
                   <% if (can('participants.manage') && r.status === 'pending') { %>
