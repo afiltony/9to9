@@ -97,6 +97,8 @@ describe('public registration over HTTP', () => {
 
     const pdf = await c.request(`${loc}/id-card.pdf`);
     assert.equal(pdf.headers.get('content-type'), 'application/pdf');
+    assert.match(pdf.headers.get('content-disposition'), /^attachment;/, 'phones need a real download, not an inline PDF');
+    assert.doesNotMatch(page, /id-card\.pdf" target="_blank"/);
     const pdfBytes = Buffer.from(await pdf.arrayBuffer());
     assert.equal(pdfBytes.subarray(0, 5).toString(), '%PDF-');
     assert.equal(pdfBytes.toString('latin1').match(/\/Type \/Page\b/g).length, 2, 'one card: front and back');

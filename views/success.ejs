@@ -27,7 +27,7 @@
         <div class="qr-box"><img src="<%= qr %>" width="172" height="172" alt="Your check-in QR code for <%= p.registration_number %>"></div>
       </div>
       <div class="no-print">
-        <a class="btn" href="/r/<%= p.access_token %>/id-card.pdf" target="_blank" rel="noopener"><%- include('partials/icon', { name: 'download' }) %>Download your card</a>
+        <a class="btn" href="/r/<%= p.access_token %>/id-card.pdf" download="<%= p.registration_number %>-id-card.pdf"><%- include('partials/icon', { name: 'download' }) %>Download your card</a>
       </div>
       <div class="alert info small" style="margin:0">
         <span><strong>Bookmark this page</strong> — it is your private link to see your registration again. Don't share it.</span>

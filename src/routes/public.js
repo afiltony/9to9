@@ -192,10 +192,12 @@ router.get('/r/:token', loadOwnParticipant, async (req, res) => {
   res.render('success', { title: 'Registration successful', p: req.participant, bookings, qr: await qrDataUrl(req.participant) });
 });
 
+// sent as an attachment: phones (and WhatsApp/Instagram in-app browsers) often can't show a PDF
+// inline or open it in a new tab, so tapping the button would do nothing
 function sendPdf(res, buffer, filename) {
   res.set({
     'Content-Type': 'application/pdf',
-    'Content-Disposition': `inline; filename="${filename}"`,
+    'Content-Disposition': `attachment; filename="${filename}"`,
     'Cache-Control': 'private, no-store',
   });
   res.send(buffer);
