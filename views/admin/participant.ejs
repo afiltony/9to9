@@ -25,7 +25,8 @@
     <div class="actions">
       <% if (can('participants.manage')) { %><a class="btn sm outline" href="/admin/participants/<%= p.id %>/edit">Edit</a><% } %>
       <% if (can('documents.print')) { %>
-        <a class="btn sm" href="/admin/participants/<%= p.id %>/id-card.pdf" target="_blank" rel="noopener"><%- include('../partials/icon', { name: 'printer' }) %>ID card</a>
+        <a class="btn sm" href="/admin/participants/<%= p.id %>/id-card.pdf" data-card-jpg="/admin/participants/<%= p.id %>/id-card.pdf" data-name="<%= p.registration_number %>"><%- include('../partials/icon', { name: 'printer' }) %>ID card JPG</a>
+        <a class="btn sm outline" href="/admin/participants/<%= p.id %>/id-card.pdf" target="_blank" rel="noopener">ID card PDF</a>
         <a class="btn sm" href="/admin/participants/<%= p.id %>/activity-card.pdf" target="_blank" rel="noopener">Activity card</a>
       <% } %>
       <% if (can('checkin.perform')) { %><a class="btn sm outline" href="/checkin/<%= p.qr_token %>?station=EVENT">Check in</a><% } %>
@@ -134,8 +135,10 @@
   <p class="muted small">Cards are generated fresh each time, so they always show the current details and bookings.</p>
   <div class="actions" style="margin-bottom:16px">
     <% if (can('documents.print')) { %>
-      <a class="btn sm" href="/admin/participants/<%= p.id %>/id-card.pdf" target="_blank" rel="noopener">ID card (marks as printed)</a>
+      <a class="btn sm" href="/admin/participants/<%= p.id %>/id-card.pdf" data-card-jpg="/admin/participants/<%= p.id %>/id-card.pdf" data-name="<%= p.registration_number %>">ID card JPG for card printer (marks as printed)</a>
+      <a class="btn sm outline" href="/admin/participants/<%= p.id %>/id-card.pdf" target="_blank" rel="noopener">ID card PDF (marks as printed)</a>
       <a class="btn sm outline" href="/admin/participants/<%= p.id %>/id-card.pdf?mark=0" target="_blank" rel="noopener">Preview ID card</a>
+      <a class="btn sm outline" href="/admin/participants/<%= p.id %>/id-card.pdf?mark=0" data-card-jpg="/admin/participants/<%= p.id %>/id-card.pdf?mark=0" data-name="<%= p.registration_number %>-test">Test JPG (not marked)</a>
       <a class="btn sm" href="/admin/participants/<%= p.id %>/activity-card.pdf" target="_blank" rel="noopener">Activity card</a>
     <% } %>
   </div>

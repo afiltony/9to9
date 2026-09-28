@@ -55,7 +55,8 @@
       </dl>
       <% if (!p.card_printed_at && can('documents.print')) { %>
         <div class="actions" style="margin-top:12px">
-          <a class="btn sm" href="/admin/participants/<%= p.id %>/id-card.pdf" target="_blank" rel="noopener"><%- include('../partials/icon', { name: 'printer' }) %>Print ID card now</a>
+          <a class="btn sm" href="/admin/participants/<%= p.id %>/id-card.pdf" data-card-jpg="/admin/participants/<%= p.id %>/id-card.pdf" data-name="<%= p.registration_number %>"><%- include('../partials/icon', { name: 'printer' }) %>Print ID card now (JPG)</a>
+          <a class="btn sm outline" href="/admin/participants/<%= p.id %>/id-card.pdf" target="_blank" rel="noopener">PDF</a>
           <a class="btn sm outline" href="/admin/participants/<%= p.id %>/activity-card.pdf" target="_blank" rel="noopener">Activity card</a>
         </div>
       <% } %>

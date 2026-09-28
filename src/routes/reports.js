@@ -114,6 +114,8 @@ router.post('/admin/documents', requirePermission('documents.print'), verifyCsrf
     'Content-Type': 'application/pdf',
     'Content-Disposition': `attachment; filename="${kind === 'id' ? 'id-cards' : 'activity-cards'}-${first}-to-${last}.pdf"`,
     'Cache-Control': 'private, no-store',
+    // card order in the PDF, so the browser-side JPG export can name each file
+    'X-Registration-Numbers': participants.map((p) => p.registration_number).join(','),
   });
   res.send(buffer);
 });
