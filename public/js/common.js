@@ -44,6 +44,25 @@
   });
 })();
 
+// Event poster pop-up: shown once per browser visit when someone first opens the site.
+(function () {
+  var dialog = document.querySelector('[data-poster-popup]');
+  if (!dialog || typeof dialog.showModal !== 'function') return;
+  var KEY = 'nine2nine-poster-seen';
+  try { if (sessionStorage.getItem(KEY)) return; } catch (e) { /* storage blocked: show it anyway */ }
+  var img = dialog.querySelector('img[data-src]');
+  if (img) img.src = img.getAttribute('data-src');
+  function close() { dialog.close(); }
+  dialog.addEventListener('close', function () {
+    try { sessionStorage.setItem(KEY, '1'); } catch (e) { /* ignore */ }
+  });
+  dialog.addEventListener('click', function (e) {
+    // a click on the backdrop lands on the dialog element itself
+    if (e.target === dialog || e.target.closest('[data-poster-close]')) close();
+  });
+  dialog.showModal();
+})();
+
 // Mobile menus: public header navigation and the admin sidebar.
 (function () {
   var toggle = document.querySelector('[data-menu-toggle]');
