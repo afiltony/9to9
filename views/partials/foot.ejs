@@ -7,7 +7,6 @@
         <strong>24 Hour God Experience</strong>
         <span><%= content && content.hero_kicker ? content.hero_kicker : '' %><%= event ? ' · ' + fmt.shortDate(event.start_at) + ' – ' + fmt.shortDate(event.end_at) + (event.venue ? ' · ' + event.venue : '') : '' %></span>
       </div>
-      <% if (state && state.open) { %><a class="btn white sm footer-cta" href="/register">Register now</a><% } %>
     </div>
     <div class="footer-grid">
       <div>
