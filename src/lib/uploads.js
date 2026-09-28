@@ -58,6 +58,10 @@ export async function saveImage(file, dir, { maxBytes = config.maxPhotoBytes } =
   return { path: rel };
 }
 
+export async function storedExists(rel) {
+  return !!rel && fs.access(path.join(config.storageDir, rel)).then(() => true, () => false);
+}
+
 export async function removeStored(rel) {
   if (rel) await fs.unlink(path.join(config.storageDir, rel)).catch(() => {});
 }

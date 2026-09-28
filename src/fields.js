@@ -18,13 +18,17 @@ export const SECTIONS = [
 
 const text = (name, label, section, mode, extra = {}) => ({ name, label, section, mode, type: 'text', max: 100, ...extra });
 
+// cards are printed with Latin fonts, so names must be typed in English letters.
+// Used as the server regex and as the input's HTML pattern, so keep it valid in both.
+export const LATIN_NAME_PATTERN = "[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ .'\\-]*";
+
 export const FIELDS = [
   // one name field: stored in first_name and printed on the card as typed
-  text('first_name', 'Full name (as printed on your card)', 'personal', 'required', { locked: true, autocomplete: 'name',
+  text('first_name', 'Full name (as printed on your card)', 'personal', 'required', { locked: true, autocomplete: 'name', latin: true,
     help: 'Type your name in English letters, exactly as it should appear on your card.' }),
-  text('middle_name', 'Middle name', 'personal', 'hidden', { autocomplete: 'additional-name' }),
-  text('last_name', 'Last name', 'personal', 'hidden', { autocomplete: 'family-name' }),
-  text('preferred_name', 'Preferred name (printed on card)', 'personal', 'hidden'),
+  text('middle_name', 'Middle name', 'personal', 'hidden', { autocomplete: 'additional-name', latin: true }),
+  text('last_name', 'Last name', 'personal', 'hidden', { autocomplete: 'family-name', latin: true }),
+  text('preferred_name', 'Preferred name (printed on card)', 'personal', 'hidden', { latin: true }),
   { name: 'date_of_birth', label: 'Date of birth', section: 'personal', mode: 'required', type: 'date' },
   { name: 'gender', label: 'Gender', section: 'personal', mode: 'required', type: 'select', options: GENDERS },
   { name: 'profile_photo', label: 'Profile photograph', section: 'personal', mode: 'required', type: 'photo',
@@ -48,7 +52,7 @@ export const FIELDS = [
   text('coordinator_name', 'Coordinator name', 'church', 'hidden', { max: 200 }),
   text('coordinator_mobile', 'Coordinator mobile', 'church', 'hidden', { type: 'tel', max: 20 }),
 
-  text('emergency_name', 'Contact name', 'emergency', 'required', { max: 200 }),
+  text('emergency_name', 'Contact name', 'emergency', 'required', { max: 200, latin: true }),
   text('emergency_relationship', 'Relationship', 'emergency', 'required'),
   text('emergency_mobile', 'Mobile', 'emergency', 'required', { type: 'tel', max: 20 }),
   text('emergency_alternate_mobile', 'Alternate mobile', 'emergency', 'optional', { type: 'tel', max: 20 }),

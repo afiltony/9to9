@@ -11,7 +11,6 @@
   const steps = [
     ...sections.map((s) => ({ key: s.key, label: s.step })),
     { key: 'activities', label: 'Activities' },
-    { key: 'consent', label: 'Consent' },
     { key: 'confirm', label: 'Confirm' },
   ];
   const isOn = (v) => v === 'on' || v === '1' || v === true;
@@ -64,13 +63,17 @@
             <% } else if (f.type === 'photo') { %>
               <span class="label" id="<%= id %>_l"><%= f.label %><% if (f.required) { %> <span class="req">*</span><% } %></span>
               <label class="dropzone" id="dropzone" for="<%= id %>">
-                <span class="dz-preview" id="photo-preview"><%- include('partials/icon', { name: 'camera' }) %></span>
+                <% if (keptPhoto) { %>
+                  <span class="dz-preview has" id="photo-preview" style="background-image:url(/register/photo?t=<%= Date.now() %>)"></span>
+                <% } else { %>
+                  <span class="dz-preview" id="photo-preview"><%- include('partials/icon', { name: 'camera' }) %></span>
+                <% } %>
                 <span class="dz-text">
-                  <strong>Drag a photo here or tap to upload</strong>
-                  <span class="help" style="display:block">JPG, JPEG or PNG · face clearly visible. Large photos are reduced to <%= maxPhotoMb %> MB automatically.</span>
+                  <strong><%= keptPhoto ? 'Your photo is saved ✓' : 'Drag a photo here or tap to upload' %></strong>
+                  <span class="help" style="display:block"><%= keptPhoto ? 'No need to choose it again. Tap only if you want a different photo.' : `JPG, JPEG or PNG · face clearly visible. Large photos are reduced to ${maxPhotoMb} MB automatically.` %></span>
                   <span class="help" id="photo-name" style="display:block"></span>
                 </span>
-                <input type="file" name="profile_photo" id="<%= id %>" accept="image/jpeg,image/png,image/*" data-max-bytes="<%= maxPhotoBytes %>" data-max-upload-mb="<%= maxUploadMb %>" <%= f.required ? 'required' : '' %> aria-describedby="<%= id %>_l">
+                <input type="file" name="profile_photo" id="<%= id %>" accept="image/jpeg,image/png,image/*" data-max-bytes="<%= maxPhotoBytes %>" data-max-upload-mb="<%= maxUploadMb %>" <%= f.required && !keptPhoto ? 'required' : '' %><%= keptPhoto ? ' data-kept=1' : '' %> aria-describedby="<%= id %>_l">
               </label>
             <% } else { %>
               <label for="<%= id %>"><%= f.label %><% if (f.required) { %> <span class="req">*</span><% } %></label>
@@ -95,6 +98,7 @@
                   <% if (f.autocomplete) { %>autocomplete="<%= f.autocomplete %>"<% } %>
                   <% if (f.inputmode) { %>inputmode="<%= f.inputmode %>"<% } %>
                   <% if (f.name === 'first_name') { %>placeholder="e.g. Anna Joseph" autocapitalize="words"<% } %>
+                  <% if (f.latin) { %>pattern="<%= latinPattern %>" data-pattern-msg="Please type the name in English letters (A–Z)."<% } %>
                   <% if (f.type === 'tel') { %>inputmode="tel" pattern="[0-9 +\-]{8,20}"<% } %>
                   <% if (f.type === 'date') { %>max="<%= event.start_at.slice(0, 10) %>" min="1930-01-01"<% } %>>
                 <% if (f.name === 'date_of_birth') { %><div class="help" id="age-display" aria-live="polite"></div><% } %>
@@ -145,28 +149,24 @@
         <p class="help">Programme items that need no booking are open to everyone — see the <a href="/schedule" target="_blank">full schedule</a>.</p>
       </fieldset>
 
-      <fieldset class="card step" data-step="consent" data-title="Consent" aria-labelledby="h-consent">
-        <div class="step-head">
-          <div class="icon"><%- include('partials/icon', { name: 'shield' }) %></div>
-          <div><h2 id="h-consent">Consent</h2><p>Please read and confirm. See the <a href="/privacy" target="_blank">privacy policy</a> and <a href="/terms" target="_blank">terms</a>.</p></div>
-        </div>
-        <% for (const c of consents) { %>
-          <div class="field<%= errors[c.name] ? ' has-error' : '' %>">
-            <label class="check"><input type="checkbox" name="<%= c.name %>" <%= isOn(values[c.name]) ? 'checked' : '' %> <%= c.required ? 'required' : '' %>>
-              <span><%= c.label %><% if (c.required) { %> <span class="req">*</span><% } %></span></label>
-            <% if (errors[c.name]) { %><div class="error-text"><%= errors[c.name] %></div><% } %>
-          </div>
-        <% } %>
-      </fieldset>
-
-      <section class="step" data-step="confirm" aria-labelledby="confirm-title">
+      <section class="step" data-step="confirm" data-title="Confirm" aria-labelledby="confirm-title">
         <div class="card">
           <div class="step-head">
             <div class="icon"><%- include('partials/icon', { name: 'checkCircle' }) %></div>
-            <div><h2 id="confirm-title">Check your registration</h2><p>Make sure everything is correct — it will be printed on your card.</p></div>
+            <div><h2 id="confirm-title">Check and confirm</h2><p>Make sure everything is correct — it will be printed on your card.</p></div>
           </div>
           <div class="conflict-box" id="incomplete-message" hidden role="alert"></div>
           <div id="summary"></div>
+          <div class="consents" style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line)">
+            <p class="small muted" style="margin:0 0 10px">Please tick to confirm. See the <a href="/privacy" target="_blank">privacy policy</a> and <a href="/terms" target="_blank">terms</a>.</p>
+            <% for (const c of consents) { %>
+              <div class="field<%= errors[c.name] ? ' has-error' : '' %>">
+                <label class="check"><input type="checkbox" name="<%= c.name %>" <%= isOn(values[c.name]) ? 'checked' : '' %> <%= c.required ? 'required' : '' %>>
+                  <span><%= c.label %><% if (c.required) { %> <span class="req">*</span><% } %></span></label>
+                <% if (errors[c.name]) { %><div class="error-text"><%= errors[c.name] %></div><% } %>
+              </div>
+            <% } %>
+          </div>
         </div>
       </section>
 

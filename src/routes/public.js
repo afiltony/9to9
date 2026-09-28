@@ -3,9 +3,9 @@ import express from 'express';
 import rateLimit from 'express-rate-limit';
 import { config } from '../config.js';
 import { eventContent } from '../content.js';
-import { COUNTRY_CODES, CONSENTS, SECTIONS, formFields } from '../fields.js';
+import { COUNTRY_CODES, CONSENTS, LATIN_NAME_PATTERN, SECTIONS, formFields } from '../fields.js';
 import { verifyCsrf } from '../lib/security.js';
-import { imageUpload, removeStored, saveImage, uploadedFile } from '../lib/uploads.js';
+import { imageUpload, removeStored, saveImage, storedExists, uploadedFile } from '../lib/uploads.js';
 import { idCardPdf, qrDataUrl } from '../services/pdf.js';
 import {
   RegistrationError, getEvent, getParticipantBy, getParticipantSlots, getSchedule,
@@ -105,6 +105,8 @@ async function renderForm(req, res, { values = {}, errors = {}, message = null, 
     message,
     selected: new Set(selected.length ? selected : preselect),
     badSlots: new Set(badSlots),
+    keptPhoto: !!req.session.pendingPhoto,
+    latinPattern: LATIN_NAME_PATTERN,
     maxPhotoMb: Math.round(config.maxPhotoBytes / 1024 / 1024),
     maxPhotoBytes: config.maxPhotoBytes,
     maxUploadMb: Math.round(config.maxUploadBytes / 1024 / 1024),
@@ -120,35 +122,48 @@ router.post('/register', registerLimiter, imageUpload(['profile_photo']), verify
   const body = req.body;
   const selected = parseSlotIds(body.slots);
   const file = uploadedFile(req, 'profile_photo');
-  const { values, errors } = validateRegistration(req.event, body, { hasPhoto: !!file });
 
-  let photoPath = null;
-  if (req.uploadError) errors.profile_photo = req.uploadError;
-  else if (file && !Object.keys(errors).length) {
+  // The photo is saved as soon as it arrives and kept in the session, so a form that comes
+  // back with an error (phone number, full slot…) never asks for the photograph again.
+  let photoError = req.uploadError || null;
+  if (file && !photoError) {
     const saved = await saveImage(file, 'photos');
-    if (saved.error) errors.profile_photo = saved.error;
-    else photoPath = saved.path;
+    if (saved.error) photoError = saved.error;
+    else {
+      if (req.session.pendingPhoto) await removeStored(req.session.pendingPhoto);
+      req.session.pendingPhoto = saved.path;
+    }
   }
+  if (req.session.pendingPhoto && !(await storedExists(req.session.pendingPhoto))) delete req.session.pendingPhoto;
+  const photoPath = req.session.pendingPhoto || null;
+  const { values, errors } = validateRegistration(req.event, body, { hasPhoto: !!photoPath });
+  if (photoError) errors.profile_photo = photoError;
 
   if (Object.keys(errors).length) {
-    return renderForm(req, res, {
-      values: body, errors, selected, status: 422,
-      message: 'Please correct the highlighted fields.' + (file ? ' Your photograph needs to be selected again.' : ''),
-    });
+    return renderForm(req, res, { values: body, errors, selected, status: 422, message: 'Please correct the highlighted fields.' });
   }
 
   try {
     const p = await registerParticipant(req.event.id, values, selected, { photoPath, ip: req.ip });
+    delete req.session.pendingPhoto; // now belongs to the participant
     res.redirect(303, `/r/${p.access_token}`);
   } catch (err) {
-    await removeStored(photoPath);
     if (!(err instanceof RegistrationError)) throw err;
     renderForm(req, res, {
       values: body, selected: selected.filter((id) => !err.slotIds.includes(id)),
-      badSlots: err.slotIds, status: 409,
-      message: `${err.message}${photoPath ? ' Please select your photograph again.' : ''}`,
+      badSlots: err.slotIds, status: 409, message: err.message,
     });
   }
+});
+
+/** The photo kept from an earlier attempt in this browser session, for the form preview. */
+router.get('/register/photo', (req, res) => {
+  const rel = req.session.pendingPhoto;
+  if (!rel || !/^photos\/[0-9a-f-]{36}\.(jpg|png)$/.test(rel)) return res.status(404).end();
+  res.set('Cache-Control', 'private, no-store');
+  res.sendFile(path.join(config.storageDir, rel), (err) => {
+    if (err && !res.headersSent) { delete req.session.pendingPhoto; res.status(404).end(); }
+  });
 });
 
 /** Live seat counts, polled by the registration page. */

@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import { config } from '../config.js';
 import { one, query, tx } from '../db.js';
-import { CONSENTS, formFields } from '../fields.js';
+import { CONSENTS, LATIN_NAME_PATTERN, formFields } from '../fields.js';
 import { nowLocal, timeRange } from '../lib/format.js';
 import { audit } from './audit.js';
 
@@ -70,8 +70,7 @@ export async function getSchedule(eventId, { bookableOnly = false } = {}) {
 // 10-digit Indian number, or an international number with its + country code
 const MOBILE_RE = /^(\d{10}|\+\d{8,15})$/;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const NAME_RE = /^[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ .'-]*$/;
-const NAME_FIELDS = new Set(['first_name', 'middle_name', 'last_name', 'preferred_name', 'emergency_name']);
+const NAME_RE = new RegExp(`^${LATIN_NAME_PATTERN}$`);
 
 export const normalizePhone = (v) => String(v || '').replace(/[\s\-().]/g, '');
 
@@ -113,6 +112,9 @@ export function validateRegistration(event, body, { hasPhoto = false, adminEdit 
       const cc = f.countryCode && typeof body[`${f.name}_cc`] === 'string' ? body[`${f.name}_cc`].trim() : '';
       if (cc && cc !== '+91' && /^\+\d{1,4}$/.test(cc) && !v.startsWith('+')) v = cc + v;
       if (/^\+91\d{10}$/.test(v)) v = v.slice(3);
+      // Indian numbers are often typed with a trunk 0 or the 91 prefix: 09496935651, 919496935651
+      else if (/^0\d{10}$/.test(v)) v = v.slice(1);
+      else if (/^91\d{10}$/.test(v)) v = v.slice(2);
       if (!MOBILE_RE.test(v)) errors[f.name] = 'Enter a valid phone number.';
     } else if (f.type === 'email') {
       v = v.toLowerCase();
@@ -125,7 +127,7 @@ export function validateRegistration(event, body, { hasPhoto = false, adminEdit 
       else v = `${v.replace('T', ' ')}:00`;
     } else if (f.type === 'select') {
       if (!f.options.includes(v)) errors[f.name] = `Choose a valid ${f.label.toLowerCase()}.`;
-    } else if (NAME_FIELDS.has(f.name)) {
+    } else if (f.latin) {
       // cards are printed with Latin fonts, so names must be typed in English letters
       if (!NAME_RE.test(v)) errors[f.name] = 'Please type the name in English letters.';
     }

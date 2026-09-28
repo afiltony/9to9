@@ -75,14 +75,16 @@ describe('public pages', () => {
     assert.match(html, /Sun 11 Oct/);
   });
 
-  test('registration wizard has six steps with one name field', async () => {
+  test('registration wizard has five steps with one name field', async () => {
     const html = await (await client().request('/register')).text();
     assert.ok(!/<span class="t">(Organization|Requirements)<\/span>/.test(html), 'organization and requirements steps are off');
     assert.match(html, /Full name \(as printed on your card\)/);
     assert.ok(!html.includes('name="last_name"') && !html.includes('name="parish"') && !html.includes('name="accommodation_required"'));
-    for (const step of ['Personal', 'Contact', 'Emergency', 'Activities', 'Consent', 'Confirm']) {
+    for (const step of ['Personal', 'Contact', 'Emergency', 'Activities', 'Confirm']) {
       assert.match(html, new RegExp(`<span class="t">${step}</span>`));
     }
+    assert.ok(!html.includes('<span class="t">Consent</span>'), 'consent is part of the confirm step');
+    assert.match(html, /name="consent_rules"/);
   });
 
   test('"book this slot" preselects the slot on the registration form', async () => {

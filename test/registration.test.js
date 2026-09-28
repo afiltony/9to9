@@ -45,6 +45,16 @@ describe('validation', () => {
     assert.ok(errors.mobile && errors.email && errors.date_of_birth && errors.first_name);
   });
 
+  test('Indian numbers typed with a leading 0 or 91 are accepted as 10 digits', () => {
+    for (const typed of ['09496935651', '919496935651', '+91 94969 35651', '94969-35651']) {
+      const { values, errors } = validateRegistration(event, validBody({ mobile: typed, emergency_mobile: typed }));
+      assert.equal(errors.mobile, undefined, typed);
+      assert.equal(values.mobile, '9496935651', typed);
+      assert.equal(values.emergency_mobile, '9496935651', typed);
+    }
+    assert.ok(validateRegistration(event, validBody({ mobile: '949693565' })).errors.mobile, '9 digits is refused');
+  });
+
   test('photo is required unless hidden in form_config', () => {
     assert.ok(validateRegistration(event, validBody()).errors.profile_photo);
     assert.equal(validateRegistration(event, validBody(), { hasPhoto: true }).errors.profile_photo, undefined);

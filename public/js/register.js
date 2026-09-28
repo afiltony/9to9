@@ -59,6 +59,8 @@
   function clearPhoto(message) {
     photoName.textContent = message;
     photo.value = '';
+    // a photo saved on an earlier attempt is still there: keep showing it
+    if (photo.dataset.kept) { preview.style.backgroundImage = 'url(/register/photo)'; return; }
     preview.style.backgroundImage = '';
     preview.classList.remove('has');
   }
@@ -146,6 +148,26 @@
       if (file && window.DataTransfer) { setFile(file); handlePhoto(file); }
     });
   }
+
+  // ---------------------------------------------------------------- phone numbers (same rules as the server)
+  function phoneProblem(input) {
+    var v = input.value.replace(/[\s\-().]/g, '');
+    if (!v) return '';
+    if (!/^\+?\d+$/.test(v)) return 'Use digits only.';
+    var ccSel = input.closest('.phone-input') && input.closest('.phone-input').querySelector('select');
+    var cc = ccSel ? ccSel.value : '+91';
+    if (v.charAt(0) === '+') return /^\+\d{8,15}$/.test(v) ? '' : 'Enter the full number with its country code.';
+    if (cc !== '+91') return /^\d{8,15}$/.test(cc.slice(1) + v) ? '' : 'Enter a valid phone number.';
+    // India: 10 digits, also accepted with a leading 0 or 91
+    return /^(0|91)?\d{10}$/.test(v) ? '' : 'Enter a 10-digit mobile number.';
+  }
+  var phones = Array.prototype.slice.call(form.querySelectorAll('input[type=tel]'));
+  function checkPhone(input) { input.setCustomValidity(phoneProblem(input)); }
+  phones.forEach(function (input) {
+    input.addEventListener('input', function () { checkPhone(input); });
+    var cc = input.closest('.phone-input') && input.closest('.phone-input').querySelector('select');
+    if (cc) cc.addEventListener('change', function () { checkPhone(input); });
+  });
 
   // ---------------------------------------------------------------- slot selection
   var slotBoxes = Array.prototype.slice.call(form.querySelectorAll('input[name="slots"]'));
@@ -240,7 +262,7 @@
       return r ? r.nextElementSibling.textContent : '';
     }
     var file = wrapper.querySelector('input[type=file]');
-    if (file) return file.files && file.files.length ? 'Photo added ✓' : '';
+    if (file) return (file.files && file.files.length) || file.dataset.kept ? 'Photo added ✓' : '';
     var sel = wrapper.querySelector('select:not([name$="_cc"])');
     if (sel) return sel.value ? sel.options[sel.selectedIndex].text : '';
     var input = wrapper.querySelector('input:not([type=hidden]), textarea');
@@ -269,10 +291,6 @@
         body = list.length ? '<dl class="kv">' + list.map(function (b) {
           return '<dt>' + escapeHtml(b.dataset.day + ' · ' + b.dataset.time) + '</dt><dd>' + escapeHtml(b.dataset.activity) + (b.dataset.venue ? ' <span class="muted">· ' + escapeHtml(b.dataset.venue) + '</span>' : '') + '</dd>';
         }).join('') : '<p class="muted small" style="margin:0">No activity slots selected — you can still attend all open programmes.';
-      } else if (key === 'consent') {
-        step.querySelectorAll('input[type=checkbox]').forEach(function (c) {
-          body += '<dt>' + (c.checked ? '✓ Yes' : '✗ No') + '</dt><dd>' + escapeHtml(c.parentNode.querySelector('span').textContent.replace(/\s*\*$/, '')) + '</dd>';
-        });
       } else {
         step.querySelectorAll('[data-field]').forEach(function (w) {
           if (w.hidden) return;
@@ -317,7 +335,8 @@
           msg.className = 'error-text client';
           msg.setAttribute('role', 'alert');
           msg.textContent = el.validity.valueMissing ? (el.type === 'file' ? 'Please add a photograph.' : el.type === 'checkbox' ? 'This confirmation is required.' : 'This field is required.')
-            : el.validity.patternMismatch ? 'Enter a valid phone number.' : el.validationMessage;
+            : el.validity.customError ? el.validationMessage
+            : el.validity.patternMismatch ? (el.dataset.patternMsg || 'Enter a valid phone number.') : el.validationMessage;
           wrapper.appendChild(msg);
         }
         el.focus({ preventScroll: false });
@@ -332,8 +351,10 @@
     var isLast = current === steps.length - 1;
     btnBack.hidden = current === 0;
     btnNext.hidden = isLast;
-    // the submit button appears only on the review step, once every step is complete
+    // the submit button appears only on the review step, once every earlier step is complete
+    // (the consent ticks on the review step itself are checked when it is pressed)
     var missing = isLast ? firstIncomplete() : -1;
+    if (missing === current) missing = -1;
     btnSubmit.hidden = !isLast || missing !== -1;
     incomplete.hidden = missing === -1;
     if (missing !== -1) {
@@ -433,6 +454,7 @@
 
   // ---------------------------------------------------------------- start
   restoreDraft();
+  phones.forEach(checkPhone);
   syncShowIf();
   showAge();
   renderSelected();

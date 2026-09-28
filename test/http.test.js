@@ -113,6 +113,29 @@ describe('public registration over HTTP', () => {
     assert.match(html, /value="Keepme Person"/);
   });
 
+  test('the photo is kept when the form comes back with an error', async () => {
+    const c = client();
+    const bad = await registerViaHttp(c, { mobile: '12345', first_name: 'Kept Photo' });
+    assert.equal(bad.status, 422);
+    const html = await bad.text();
+    assert.match(html, /Your photo is saved/);
+    assert.doesNotMatch(html, /selected again|select your photograph again/);
+    assert.equal((await c.request('/register/photo')).status, 200);
+    assert.equal((await client().request('/register/photo')).status, 404, 'other visitors cannot see it');
+
+    // fixed the phone number, did not choose the photo again: registration succeeds with the kept photo
+    const ok = await registerViaHttp(c, { mobile: '09333333333', first_name: 'Kept Photo' }, [], false);
+    assert.equal(ok.status, 303);
+    const p = await one('SELECT mobile, profile_photo_path FROM participants WHERE first_name = ?', ['Kept Photo']);
+    assert.equal(p.mobile, '9333333333', 'leading 0 is dropped');
+    assert.match(p.profile_photo_path, /^photos\//);
+
+    // the next registration on the same phone starts without it
+    assert.equal((await c.request('/register/photo')).status, 404);
+    const next = await registerViaHttp(c, { mobile: '9333333334' }, [], false);
+    assert.match(await next.text(), /Please add a photograph/);
+  });
+
   test('a photo over 1 MB is reduced automatically, not refused', async () => {
     // random pixels barely compress, so this PNG is several MB — like a raw phone photo
     const { Jimp, JimpMime } = await import('jimp');
