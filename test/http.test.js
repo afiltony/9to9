@@ -95,9 +95,10 @@ describe('public registration over HTTP', () => {
 
     const pdf = await c.request(`${loc}/id-card.pdf`);
     assert.equal(pdf.headers.get('content-type'), 'application/pdf');
-    assert.equal(Buffer.from(await pdf.arrayBuffer()).subarray(0, 5).toString(), '%PDF-');
-    const card = await c.request(`${loc}/activity-card.pdf`);
-    assert.equal(card.status, 200);
+    const pdfBytes = Buffer.from(await pdf.arrayBuffer());
+    assert.equal(pdfBytes.subarray(0, 5).toString(), '%PDF-');
+    assert.equal(pdfBytes.toString('latin1').match(/\/Type \/Page\b/g).length, 2, 'one card: front and back');
+    assert.doesNotMatch(page, /activity-card\.pdf/, 'participants download only the ID card');
 
     const p = await one('SELECT profile_photo_path FROM participants WHERE mobile = ?', ['9111111111']);
     assert.match(p.profile_photo_path, /^photos\/[0-9a-f-]{36}\.png$/);

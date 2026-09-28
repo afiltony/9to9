@@ -6,7 +6,7 @@ import { eventContent } from '../content.js';
 import { COUNTRY_CODES, CONSENTS, SECTIONS, formFields } from '../fields.js';
 import { verifyCsrf } from '../lib/security.js';
 import { imageUpload, removeStored, saveImage, uploadedFile } from '../lib/uploads.js';
-import { activityCardPdf, idCardPdf, qrDataUrl } from '../services/pdf.js';
+import { idCardPdf, qrDataUrl } from '../services/pdf.js';
 import {
   RegistrationError, getEvent, getParticipantBy, getParticipantSlots, getSchedule,
   parseSlotIds, registerParticipant, registrationState, validateRegistration,
@@ -188,12 +188,6 @@ function sendPdf(res, buffer, filename) {
 
 router.get('/r/:token/id-card.pdf', loadOwnParticipant, async (req, res) => {
   sendPdf(res, await idCardPdf(req.event, req.participant), `${req.participant.registration_number}-id-card.pdf`);
-});
-
-router.get('/r/:token/activity-card.pdf', loadOwnParticipant, async (req, res) => {
-  const bookings = await getParticipantSlots(req.participant.id);
-  const open = openProgrammeItems(await getSchedule(req.event.id));
-  sendPdf(res, await activityCardPdf(req.event, req.participant, bookings, open), `${req.participant.registration_number}-activity-card.pdf`);
 });
 
 export default router;
