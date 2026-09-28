@@ -40,7 +40,7 @@ export function buildActivities(YEAR) {
     },
     { name: 'Adoration', venue: 'Incubation Centre', capacity: 30, requiresSlot: true, slots: hourly(10, 19) },
     {
-      name: 'Night Vigil', venue: 'Central Stage', capacity: 400, requiresSlot: true,
+      name: 'Night Vigil', venue: 'Central Stage', capacity: 400, requiresSlot: true, multiSlot: true,
       slots: [slot('19:00', '21:00'), slot('21:00', '23:00'), slot('23:00', '05:00+1'), slot('05:00+1', '07:00+1')],
     },
     { name: 'Rosary Making Workshop', venue: null, capacity: 20, requiresSlot: true, slots: hourly(10, 18) },
@@ -60,8 +60,8 @@ export function buildActivities(YEAR) {
     },
     { name: 'Theatre', venue: null, capacity: 250, requiresSlot: true, slots: [slot('10:00', '12:00'), slot('13:00', '15:00'), slot('15:00', '17:00')] },
     { name: 'VR Experience Show', venue: null, capacity: 40, requiresSlot: true, slots: hourly(10, 18) },
-    // open to everyone, shown on the schedule and activity card but not booked
-    { name: 'Holy Qurbana', venue: 'Central Stage', capacity: null, requiresSlot: false, slots: [slot('07:00+1', '09:00+1')] },
+    // bookable with no limit on places; nothing else runs at the same time
+    { name: 'Holy Qurbana', venue: 'Central Stage', capacity: null, requiresSlot: true, slots: [slot('07:00+1', '09:00+1')] },
   ];
 }
 
@@ -94,7 +94,7 @@ export async function seed({ year = YEAR, code = config.eventCode, log = console
       const activityId = newId();
       await conn.query('INSERT INTO activities SET ?', [{
         id: activityId, event_id: eventId, name: a.name, venue: a.venue, capacity: a.capacity,
-        requires_slot: a.requiresSlot ? 1 : 0, sort_order: (order += 10),
+        requires_slot: a.requiresSlot ? 1 : 0, multi_slot: a.multiSlot ? 1 : 0, sort_order: (order += 10),
       }]);
       for (const s of a.slots) {
         await conn.query('INSERT INTO activity_slots SET ?', [{

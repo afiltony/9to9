@@ -147,6 +147,19 @@ describe('registration', () => {
     assert.equal((await one('SELECT registration_count FROM activity_slots WHERE id = ?', [second.id])).registration_count, 1);
   });
 
+  test('the whole Night Vigil and Holy Qurbana can be booked together', async () => {
+    const vigil = await Promise.all(['19:00:00', '21:00:00', '23:00:00', '05:00:00'].map((t) => slotFor('Night Vigil', t)));
+    const qurbana = await slotFor('Holy Qurbana', '07:00:00');
+    const p = await register({}, [...vigil.map((s) => s.id), qurbana.id]);
+    const booked = await query(`SELECT slot_id FROM participant_slots WHERE participant_id = ? AND status = 'confirmed'`, [p.id]);
+    assert.equal(booked.length, 5);
+
+    // an admin can add further vigil slots one by one too
+    const q = await register({}, [vigil[0].id]);
+    await addBooking(q.id, vigil[1].id);
+    assert.equal((await one('SELECT registration_count FROM activity_slots WHERE id = ?', [vigil[1].id])).registration_count, 2);
+  });
+
   test('back-to-back slots do not conflict', () => {
     const a = { start_at: '2099-10-10 10:00:00', end_at: '2099-10-10 11:00:00' };
     const b = { start_at: '2099-10-10 11:00:00', end_at: '2099-10-10 12:00:00' };
@@ -192,8 +205,8 @@ describe('registration', () => {
   });
 
   test('rejects slots from inactive or open-to-all activities', async () => {
-    const qurbana = await slotFor('Holy Qurbana', '07:00:00');
-    await rejects(register({}, [qurbana.id]), 'SLOT_UNAVAILABLE');
+    const reception = await slotFor('Registration', '09:00:00');
+    await rejects(register({}, [reception.id]), 'SLOT_UNAVAILABLE');
     const closed = await slotFor('Theatre', '10:00:00');
     await query(`UPDATE activity_slots SET status = 'closed' WHERE id = ?`, [closed.id]);
     await rejects(register({}, [closed.id]), 'SLOT_UNAVAILABLE');

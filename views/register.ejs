@@ -114,7 +114,7 @@
       <fieldset class="card step" data-step="activities" data-title="Selected activities" aria-labelledby="h-activities">
         <div class="step-head">
           <div class="icon"><%- include('partials/icon', { name: 'calendar' }) %></div>
-          <div><h2 id="h-activities">Select your activities</h2><p>Tap a time to book it — one time slot per activity. Places are held when you confirm your registration.</p></div>
+          <div><h2 id="h-activities">Select your activities</h2><p>Tap a time to book it — one time slot per activity, unless it says you can book several. Places are held when you confirm your registration.</p></div>
         </div>
         <div class="conflict-box" id="conflict-message" hidden role="alert" aria-live="assertive"></div>
         <div class="selected-bar" id="selected-bar" aria-live="polite"></div>
@@ -123,6 +123,7 @@
             <header>
               <h3 id="pa-<%= a.id %>"><%= a.name %></h3>
               <span class="venue" style="margin:0"><%- include('partials/icon', { name: 'pin' }) %><%= a.venue || 'Venue to be announced' %><%= a.capacity ? ' · ' + a.capacity + ' per slot' : '' %></span>
+              <% if (a.multiSlot && a.slots.length > 1) { %><span class="small" style="display:block;margin-top:4px;color:var(--success);font-weight:600">You can book several or all of these times</span><% } %>
             </header>
             <div class="slot-grid">
               <% let lastDay = null; for (const s of a.slots) {
@@ -133,7 +134,7 @@
                    if (day !== lastDay) { lastDay = day; %><div class="day-sep"><%= day %></div><% } %>
                 <label class="slot<%= s.full ? ' full' : '' %><%= !s.open ? ' closed' : '' %><%= low ? ' low' : '' %><%= badSlots.has(s.id) ? ' bad' : '' %>">
                   <input type="checkbox" name="slots" value="<%= s.id %>"
-                         data-start="<%= s.start_at %>" data-end="<%= s.end_at %>" data-activity="<%= a.name %>" data-activity-id="<%= a.id %>"
+                         data-start="<%= s.start_at %>" data-end="<%= s.end_at %>" data-activity="<%= a.name %>" data-activity-id="<%= a.id %>"<%= a.multiSlot ? ' data-multi=1' : '' %>
                          data-time="<%= fmt.timeRange(s.start_at, s.end_at) %>" data-day="<%= day %>" data-venue="<%= a.venue || '' %>"
                          <%= selected.has(s.id) && !unavailable ? 'checked' : '' %> <%= unavailable ? 'disabled' : '' %>>
                   <span class="state" aria-hidden="true"></span>

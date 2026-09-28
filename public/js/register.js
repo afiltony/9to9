@@ -201,7 +201,8 @@
       form.querySelectorAll('.slot.conflict').forEach(function (el) { el.classList.remove('conflict'); });
       conflictBox.hidden = true;
       // one time slot per activity: choosing another time moves the booking
-      if (box.checked) {
+      // (activities marked data-multi, such as the Night Vigil, allow several)
+      if (box.checked && !box.dataset.multi) {
         slotBoxes.forEach(function (o) {
           if (o !== box && o.checked && o.dataset.activityId === box.dataset.activityId) o.checked = false;
         });

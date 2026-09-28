@@ -44,7 +44,7 @@ router.post(['/admin/activities/new', '/admin/activities/:id'], requirePermissio
   const id = isUuid(req.params.id) ? req.params.id : null;
   const activity = id ? await getActivity(req.event.id, id) : null;
   if (id && !activity) return res.status(404).render('error', { title: 'Not found', message: 'Activity not found.' });
-  const toForm = (v) => ({ ...v, requires_slot: v.requires_slot === 'on' ? 1 : 0, active: v.active === 'on' ? 1 : 0 });
+  const toForm = (v) => ({ ...v, requires_slot: v.requires_slot === 'on' ? 1 : 0, multi_slot: v.multi_slot === 'on' ? 1 : 0, active: v.active === 'on' ? 1 : 0 });
   let imagePath = null;
   try {
     const file = uploadedFile(req, 'image');

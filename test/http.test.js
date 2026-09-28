@@ -73,7 +73,9 @@ describe('public registration over HTTP', () => {
     const html = await (await client().request('/register')).text();
     assert.match(html, /Adoration/);
     assert.match(html, /30 places left/);
-    assert.ok(!html.includes('Holy Qurbana'), 'open-to-all items are not bookable');
+    assert.ok(!html.includes('Selfie Point'), 'open-to-all items are not bookable');
+    assert.match(html, /Holy Qurbana/);
+    assert.match(html, /You can book several or all of these times/, 'Night Vigil allows several slots');
   });
 
   test('POST without a CSRF token is refused', async () => {

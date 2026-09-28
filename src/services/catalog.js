@@ -39,6 +39,7 @@ function activityValues(body) {
     description: str(body.description, 2000) || null,
     capacity: intOrNull(body.capacity),
     requires_slot: body.requires_slot === 'on' ? 1 : 0,
+    multi_slot: body.multi_slot === 'on' ? 1 : 0,
     active: body.active === 'on' ? 1 : 0,
     sort_order: intOrNull(body.sort_order) ?? 0,
   };

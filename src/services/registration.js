@@ -35,7 +35,7 @@ export function registrationState(event, now = nowLocal(config.tzOffset)) {
 /** Activities with their slots and live availability, in schedule order. */
 export async function getSchedule(eventId, { bookableOnly = false } = {}) {
   const rows = await query(
-    `SELECT a.id AS activity_id, a.name, a.description, a.venue, a.image_path, a.requires_slot, a.capacity AS activity_capacity,
+    `SELECT a.id AS activity_id, a.name, a.description, a.venue, a.image_path, a.requires_slot, a.multi_slot, a.capacity AS activity_capacity,
             s.id AS slot_id, s.label, s.start_at, s.end_at, s.capacity, s.registration_count, s.status
        FROM activities a
        LEFT JOIN activity_slots s ON s.activity_id = a.id
@@ -49,7 +49,7 @@ export async function getSchedule(eventId, { bookableOnly = false } = {}) {
     let a = byId.get(r.activity_id);
     if (!a) {
       a = { id: r.activity_id, name: r.name, description: r.description, venue: r.venue, image: r.image_path,
-        requiresSlot: !!r.requires_slot, capacity: r.activity_capacity, slots: [] };
+        requiresSlot: !!r.requires_slot, multiSlot: !!r.multi_slot, capacity: r.activity_capacity, slots: [] };
       byId.set(r.activity_id, a);
       activities.push(a);
     }
@@ -226,7 +226,7 @@ export async function registerParticipant(eventId, values, slotIds, { photoPath 
       // lock in a fixed order so concurrent transactions cannot deadlock each other
       const ordered = [...slotIds].sort();
       const [rows] = await conn.query(
-        `SELECT s.*, a.name AS activity_name
+        `SELECT s.*, a.name AS activity_name, a.multi_slot
            FROM activity_slots s JOIN activities a ON a.id = s.activity_id
           WHERE s.id IN (?) AND a.event_id = ? AND a.active = 1 AND a.requires_slot = 1
           ORDER BY s.id FOR UPDATE`,
@@ -241,8 +241,8 @@ export async function registerParticipant(eventId, values, slotIds, { photoPath 
         });
       }
 
-      // one time slot per activity
-      const repeated = slots.filter((s) => slots.some((o) => o !== s && o.activity_id === s.activity_id));
+      // one time slot per activity, unless the activity allows several (e.g. the Night Vigil)
+      const repeated = slots.filter((s) => !s.multi_slot && slots.some((o) => o !== s && o.activity_id === s.activity_id));
       if (repeated.length) {
         throw new RegistrationError(
           `You can book only one time slot for ${repeated[0].activity_name}. Please keep one and untick the others.`,
@@ -401,7 +401,7 @@ export async function addBooking(participantId, slotId, { adminId = null, ip = n
     if (['cancelled', 'rejected'].includes(p.status)) throw new RegistrationError('Reinstate the registration before adding bookings.');
     const [[event]] = await conn.query('SELECT * FROM events WHERE id = ?', [p.event_id]);
     const [[slot]] = await conn.query(
-      `SELECT s.*, a.name AS activity_name FROM activity_slots s JOIN activities a ON a.id = s.activity_id
+      `SELECT s.*, a.name AS activity_name, a.multi_slot FROM activity_slots s JOIN activities a ON a.id = s.activity_id
         WHERE s.id = ? AND a.event_id = ? AND a.requires_slot = 1 FOR UPDATE`, [slotId, p.event_id]);
     if (!slot) throw new RegistrationError('That slot does not exist.', { code: 'SLOT_UNAVAILABLE' });
 
@@ -416,7 +416,7 @@ export async function addBooking(participantId, slotId, { adminId = null, ip = n
         `SELECT s.start_at, s.end_at FROM participant_slots ps JOIN activity_slots s ON s.id = ps.slot_id
           WHERE ps.participant_id = ? AND ps.status = 'confirmed' AND s.activity_id = ? LIMIT 1`,
         [participantId, slot.activity_id]);
-      if (sibling) {
+      if (sibling && !slot.multi_slot) {
         throw new RegistrationError(`Already booked for ${slot.activity_name} (${timeRange(sibling.start_at, sibling.end_at)}). Only one time slot per activity — remove that booking first.`, { code: 'SAME_ACTIVITY' });
       }
       if (!event.allow_overlapping_bookings) {
