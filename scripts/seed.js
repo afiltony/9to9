@@ -53,7 +53,7 @@ export function buildActivities(YEAR) {
     },
     { name: 'Rosary Making Workshop', venue: 'Front Garden', capacity: 20, requiresSlot: true, slots: hourlyNoLunch() },
     { name: 'Selfie Point', venue: 'Front Garden', capacity: null, requiresSlot: false, slots: [] },
-    { name: 'Blood Donation', venue: 'Incubation Centre', capacity: 5, requiresSlot: true, slots: hourlyNoLunch() },
+    { name: 'Blood Donation', venue: 'Incubation Centre', capacity: 8, requiresSlot: true, slots: hourlyNoLunch() },
     { name: 'Garden of Joy / Confession', venue: 'Theatre Block', capacity: 50, requiresSlot: true, slots: hourlyNoLunch() },
     {
       name: 'Life of St. Carlo & Eucharistic Miracles', venue: 'Theatre', capacity: 250, requiresSlot: true,
