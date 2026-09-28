@@ -62,11 +62,11 @@
     <div class="field">
       <span class="label">ID card layout</span>
       <label class="check" style="margin-bottom:10px"><input type="radio" name="layout" value="jpg" checked>
-        <span><strong>PVC card printer — JPG images</strong><br><span class="small muted">A ZIP with a front and a back JPG for each card, actual size 54 × 85.6 mm at 300 dpi (638 × 1011 px).</span></span></label>
+        <span><strong>Card printer — JPG images</strong><br><span class="small muted">A ZIP with a front and a back JPG for each card, actual size 10 × 12.5 cm at 300 dpi (1181 × 1476 px).</span></span></label>
       <label class="check" style="margin-bottom:10px"><input type="radio" name="layout" value="card">
-        <span><strong>PVC card printer — PDF</strong><br><span class="small muted">One 54 × 85.6 mm card per page — front, then back.</span></span></label>
+        <span><strong>Card printer — PDF</strong><br><span class="small muted">One 10 × 12.5 cm card per page — front, then back.</span></span></label>
       <label class="check"><input type="radio" name="layout" value="a4">
-        <span><strong>A4 sheets, 9 cards per page</strong><br><span class="small muted">Print double-sided (flip on long edge) on card stock, then cut along the crop marks.</span></span></label>
+        <span><strong>A4 sheets, 4 cards per page</strong><br><span class="small muted">Print double-sided (flip on long edge) on card stock, then cut along the crop marks.</span></span></label>
     </div>
     <label class="check small" style="margin-bottom:18px"><input type="checkbox" name="mark" value="no"> Test print — don't mark these cards as printed</label>
     <button class="btn lg block" type="submit" <%= count ? '' : 'disabled' %> data-loading-text="Generating PDF…">

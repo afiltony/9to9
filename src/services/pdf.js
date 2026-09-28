@@ -7,8 +7,9 @@ import { eventContent } from '../content.js';
 import { dayLabel, displayName, fullName, shortDate, timeRange } from '../lib/format.js';
 
 const MM = 72 / 25.4;
-export const CARD_W = 54 * MM;
-export const CARD_H = 85.6 * MM;
+// the participant card: 10 cm wide × 12.5 cm high
+export const CARD_W = 100 * MM;
+export const CARD_H = 125 * MM;
 
 const INK = '#1b1d24';
 const MUTED = '#5d6272';
@@ -104,141 +105,150 @@ function drawPhoto(doc, p, x, y, w, h, accent) {
   doc.roundedRect(x, y, w, h, 5).lineWidth(1.2).stroke(accent);
 }
 
-// ---------------------------------------------------------------- ID card (CR80, 54 × 85.6 mm portrait)
-
-// labelled detail rows on the card; a long value may use two lines when `wrap` is set
-function detailRows(doc, x, y, width) {
-  let cy = y;
-  return {
-    row(label, value, { wrap = false } = {}) {
-      doc.fillColor(MUTED).font('BodyMed').fontSize(4.8).text(label.toUpperCase(), x, cy, { width, characterSpacing: 0.3, lineBreak: false });
-      doc.fillColor(INK).font('BodyBold').fontSize(6.6);
-      const text = value || '—';
-      const lines = wrap && doc.heightOfString(text, { width }) > 10 ? 2 : 1;
-      doc.text(text, x, cy + 5.6, lines === 2
-        ? { width, height: 17, ellipsis: true }
-        : { width, height: 9, ellipsis: true, lineBreak: false });
-      cy += 15 + (lines - 1) * 8;
-    },
-    get y() { return cy; },
-  };
-}
+// ---------------------------------------------------------------- ID card (100 × 125 mm portrait)
 
 function cardHeader(doc, event, x, y, W, h) {
   const { primary, secondary } = colors(event);
   doc.rect(x, y, W, h).fill(primary);
-  doc.rect(x, y + h, W, 1.8).fill(secondary);
+  doc.rect(x, y + h, W, 3).fill(secondary);
   const logo = logoFile(event);
   let tx = x;
   let tw = W;
   if (logo) {
-    try { doc.image(logo, x + 6, y + 4, { fit: [22, h - 8], align: 'center', valign: 'center' }); tx = x + 26; tw = W - 30; } catch { /* no logo */ }
+    try { doc.image(logo, x + 12, y + 7, { fit: [42, h - 14], align: 'center', valign: 'center' }); tx = x + 58; tw = W - 70; } catch { /* no logo */ }
   }
-  doc.fillColor('#ffffff').font('Display').fontSize(11.5).text('9 to 9 meet', tx, y + 5.5, { width: tw, align: 'center', lineBreak: false });
-  doc.fillColor(secondary).font('HeadingMed').fontSize(5.2)
-    .text('24 HOUR GOD EXPERIENCE', tx, y + 20, { width: tw, align: 'center', characterSpacing: 0.5, lineBreak: false });
+  doc.fillColor('#ffffff').font('Display').fontSize(23).text('9 to 9 meet', tx, y + 9, { width: tw, align: 'center', lineBreak: false });
+  doc.fillColor(secondary).font('HeadingMed').fontSize(9.5)
+    .text('24 HOUR GOD EXPERIENCE', tx, y + 39, { width: tw, align: 'center', characterSpacing: 0.9, lineBreak: false });
 }
 
 function cardFooter(doc, event, x, y, W, H, text) {
   const { primary } = colors(event);
-  doc.rect(x, y + H - 12, W, 12).fill(primary);
-  doc.fillColor('#ffffff').font('HeadingMed').fontSize(5.6)
-    .text(text, x + 4, y + H - 8.6, { width: W - 8, align: 'center', characterSpacing: 0.3, lineBreak: false, ellipsis: true });
+  doc.rect(x, y + H - 20, W, 20).fill(primary);
+  doc.fillColor('#ffffff').font('HeadingMed').fontSize(8.5)
+    .text(text, x + 8, y + H - 14, { width: W - 16, align: 'center', characterSpacing: 0.4, lineBreak: false, ellipsis: true });
 }
 
-// Front: photo and QR code side by side, then name, registration number, place and other details.
+// Front: photo, name, registration number and a small QR code, then place and emergency details.
 function drawIdFront(doc, event, p, x, y) {
   const { primary, secondary } = colors(event);
   const W = CARD_W;
   const H = CARD_H;
-  const pad = 9;
+  const pad = 16;
   doc.save();
   doc.rect(x, y, W, H).clip();
   doc.rect(x, y, W, H).fill('#ffffff');
-  cardHeader(doc, event, x, y, W, 30);
+  cardHeader(doc, event, x, y, W, 58);
 
-  // photo left, QR right
-  const top = y + 38;
-  drawPhoto(doc, p, x + pad, top, 54, 66, secondary);
-  const qr = 62;
-  drawQr(doc, checkinUrl(p), x + W - pad - qr, top + 2, qr);
+  const top = y + 74;
+  const photoW = 116;
+  const photoH = 145;
+  drawPhoto(doc, p, x + pad, top, photoW, photoH, secondary);
 
-  // name: shrink until it fits on two lines
+  // right of the photo: name (shrinks to fit three lines), registration number, small QR code
+  const cx = x + pad + photoW + 12;
+  const cw = x + W - pad - cx;
   const name = displayName(p).toUpperCase();
-  let size = 10;
+  let size = 17;
   doc.font('Heading').fontSize(size);
-  while (size > 6.5 && doc.heightOfString(name, { width: W - 14 }) > 2.6 * size) doc.fontSize(size -= 0.5);
-  const nameH = Math.min(23, doc.heightOfString(name, { width: W - 14 }));
-  doc.fillColor(INK).text(name, x + 7, top + 70 + (23 - nameH) / 2, { width: W - 14, align: 'center', height: 24, ellipsis: true });
-  doc.fillColor(primary).font('BodyBold').fontSize(7.5)
-    .text(p.registration_number, x, top + 95, { width: W, align: 'center', characterSpacing: 0.6, lineBreak: false });
+  while (size > 9 && doc.heightOfString(name, { width: cw }) > 54) doc.fontSize(size -= 0.5);
+  doc.fillColor(INK).text(name, cx, top, { width: cw, height: 56, ellipsis: true });
+  doc.fillColor(primary).font('BodyBold').fontSize(12)
+    .text(p.registration_number, cx, top + 60, { width: cw, characterSpacing: 0.6, lineBreak: false });
+  const qr = 58;
+  drawQr(doc, checkinUrl(p), cx - 3, top + photoH - qr, qr);
+  doc.fillColor(MUTED).font('BodyMed').fontSize(6.5)
+    .text('SCAN AT\nCHECK-IN AND\nEACH ACTIVITY', cx + qr + 4, top + photoH - 30, { width: cw - qr - 4, characterSpacing: 0.3, lineGap: 1 });
 
-  let cy = top + 107;
-  doc.moveTo(x + pad, cy).lineTo(x + W - pad, cy).lineWidth(0.5).stroke(LINE);
-  const rows = detailRows(doc, x + pad, cy + 4, W - pad * 2);
-  rows.row('Place', [p.locality, p.district].filter(Boolean).join(', '));
-  // parish and organization are optional form fields: only print them when collected
-  if (p.parish) rows.row('Parish', p.parish);
+  // details in two columns
+  let cy = top + photoH + 12;
+  doc.moveTo(x + pad, cy).lineTo(x + W - pad, cy).lineWidth(0.6).stroke(LINE);
+  cy += 8;
   const org = p.organization || p.institution || p.youth_group;
-  if (org) rows.row('Organization', org);
-  rows.row('Emergency contact', [p.emergency_name, p.emergency_relationship && `(${p.emergency_relationship})`].filter(Boolean).join(' '));
-  rows.row('Emergency phone', [p.emergency_mobile, p.emergency_alternate_mobile].filter(Boolean).join(' / '));
+  const details = [
+    ['Place', [p.locality, p.district].filter(Boolean).join(', ')],
+    // parish and organization are optional form fields: only print them when collected
+    p.parish && ['Parish', p.parish],
+    org && ['Organization', org],
+    ['Emergency contact', [p.emergency_name, p.emergency_relationship && `(${p.emergency_relationship})`].filter(Boolean).join(' ')],
+    ['Emergency phone', [p.emergency_mobile, p.emergency_alternate_mobile].filter(Boolean).join(' / ')],
+  ].filter(Boolean);
+  const colW = (W - pad * 2 - 12) / 2;
+  details.forEach(([label, value], i) => {
+    const dx = x + pad + (i % 2) * (colW + 12);
+    const dy = cy + Math.floor(i / 2) * 31;
+    doc.fillColor(MUTED).font('BodyMed').fontSize(6.5).text(label.toUpperCase(), dx, dy, { width: colW, characterSpacing: 0.4, lineBreak: false });
+    doc.fillColor(INK).font('BodyBold').fontSize(9.5).text(value || '—', dx, dy + 8, { width: colW, height: 23, ellipsis: true });
+  });
 
   cardFooter(doc, event, x, y, W, H,
-    `${shortDate(event.start_at).toUpperCase()} – ${shortDate(event.end_at).toUpperCase()}${event.venue ? ` · ${event.venue.toUpperCase()}` : ''}`);
+    `${shortDate(event.start_at).toUpperCase()} 9 AM – ${shortDate(event.end_at).toUpperCase()} 9 AM${event.venue ? ` · ${event.venue.toUpperCase()}` : ''}`);
   doc.restore();
 }
 
-// Back: "My experience" — the booked activities with day, time and venue — and the QR code.
+// Back: "My experience" — every booked activity with day, time and venue. The text shrinks
+// when someone has booked a lot, so the whole list always fits on the card.
 function drawIdBack(doc, event, p, bookings, x, y) {
-  const { primary } = colors(event);
+  const { primary, secondary } = colors(event);
   const W = CARD_W;
   const H = CARD_H;
-  const pad = 8;
-  const qr = 54;
+  const pad = 16;
   doc.save();
   doc.rect(x, y, W, H).clip();
   doc.rect(x, y, W, H).fill('#ffffff');
-  doc.rect(x, y, W, 20).fill(primary);
-  doc.fillColor('#ffffff').font('Heading').fontSize(7.5).text('MY EXPERIENCE', x + pad, y + 6.5, { characterSpacing: 0.8, lineBreak: false });
-  doc.fillColor('#ffffff').font('BodyBold').fontSize(6)
-    .text(p.registration_number, x + pad, y + 7.5, { width: W - pad * 2, align: 'right', lineBreak: false });
+  doc.rect(x, y, W, 44).fill(primary);
+  doc.rect(x, y + 44, W, 3).fill(secondary);
+  doc.fillColor('#ffffff').font('Heading').fontSize(14).text('MY EXPERIENCE', x + pad, y + 9, { characterSpacing: 1, lineBreak: false });
+  doc.fillColor(secondary).font('BodyBold').fontSize(8.5)
+    .text(`${fullName(p).toUpperCase()} · ${p.registration_number}`, x + pad, y + 28, { width: W - pad * 2, lineBreak: false, ellipsis: true });
 
-  const qrTop = y + H - 14 - qr - 8;
-  const bottom = qrTop - 6;
-  let cy = y + 26;
-  if (!bookings.length) {
-    doc.fillColor(MUTED).font('Body').fontSize(6.3)
-      .text('No activity bookings. You are welcome at all open programmes — see the schedule at the help desk.', x + pad, cy, { width: W - pad * 2, align: 'center' });
-  } else {
+  const top = y + 56;
+  const bottom = y + H - 20 - 20;
+  const timeW = 100;
+  const actX = x + pad + timeW;
+  const actW = x + W - pad - actX;
+  const rows = bookings.map((b) => ({
+    day: dayLabel(b.start_at),
+    time: timeRange(b.start_at, b.end_at),
+    activity: b.label ? `${b.activity_name} — ${b.label}` : b.activity_name,
+    venue: b.venue || '',
+  }));
+
+  // lays the list out at scale s; draws it when `draw` is set; returns the height used
+  const layout = (s, draw) => {
+    let cy = top;
     let lastDay = null;
-    for (let i = 0; i < bookings.length; i++) {
-      const b = bookings[i];
-      const day = dayLabel(b.start_at);
-      const activity = b.label ? `${b.activity_name} — ${b.label}` : b.activity_name;
-      const need = (day !== lastDay ? 9 : 0) + 18;
-      if (cy + need > bottom) {
-        doc.fillColor(MUTED).font('BodyMed').fontSize(5.5)
-          .text(`+ ${bookings.length - i} more — ask at the help desk`, x + pad, cy, { width: W - pad * 2, lineBreak: false });
-        break;
+    for (const r of rows) {
+      if (r.day !== lastDay) {
+        if (draw) doc.fillColor(primary).font('BodyBold').fontSize(7.5 * s).text(r.day.toUpperCase(), x + pad, cy + 2 * s, { characterSpacing: 0.6, lineBreak: false });
+        cy += 14 * s;
+        lastDay = r.day;
       }
-      if (day !== lastDay) {
-        doc.fillColor(primary).font('BodyBold').fontSize(5.3).text(day.toUpperCase(), x + pad, cy, { characterSpacing: 0.5, lineBreak: false });
-        cy += 8;
-        lastDay = day;
+      doc.font('BodyBold').fontSize(9.5 * s);
+      const actH = doc.heightOfString(r.activity, { width: actW });
+      const h = actH + (r.venue ? 10.5 * s : 0) + 6 * s;
+      if (draw) {
+        doc.fillColor(INK).font('BodyMed').fontSize(8.4 * s).text(r.time, x + pad, cy + 1, { width: timeW - 4, lineBreak: false });
+        doc.font('BodyBold').fontSize(9.5 * s).text(r.activity, actX, cy, { width: actW });
+        if (r.venue) doc.fillColor(MUTED).font('Body').fontSize(8 * s).text(r.venue, actX, cy + actH + 0.5, { width: actW, lineBreak: false, ellipsis: true });
+        doc.moveTo(x + pad, cy + h - 2.5 * s).lineTo(x + W - pad, cy + h - 2.5 * s).lineWidth(0.4).stroke(LINE);
       }
-      doc.fillColor(INK).font('BodyBold').fontSize(6.2)
-        .text(activity, x + pad, cy, { width: W - pad * 2, height: 8, ellipsis: true, lineBreak: false });
-      doc.fillColor(MUTED).font('Body').fontSize(5.5)
-        .text(`${timeRange(b.start_at, b.end_at)}${b.venue ? ` · ${b.venue}` : ''}`, x + pad, cy + 7.6, { width: W - pad * 2, height: 7, ellipsis: true, lineBreak: false });
-      cy += 18;
+      cy += h;
     }
+    return cy - top;
+  };
+
+  if (!rows.length) {
+    doc.fillColor(MUTED).font('Body').fontSize(10)
+      .text('No activity bookings. You are welcome at all open programmes — see the schedule at the help desk.', x + pad, top + 20, { width: W - pad * 2, align: 'center' });
+  } else {
+    let s = 1;
+    while (s > 0.5 && layout(s, false) > bottom - top) s -= 0.05;
+    layout(s, true);
   }
 
-  doc.moveTo(x + pad, qrTop - 3).lineTo(x + W - pad, qrTop - 3).lineWidth(0.5).stroke(LINE);
-  drawQr(doc, checkinUrl(p), x + (W - qr) / 2, qrTop + 1, qr);
-  doc.fillColor(MUTED).font('Body').fontSize(5)
-    .text('Show this QR code at each activity', x, qrTop + qr + 1.5, { width: W, align: 'center', lineBreak: false });
+  doc.fillColor(MUTED).font('Body').fontSize(7.5)
+    .text('Show the QR code on the front of this card at each activity.', x + pad, y + H - 20 - 14, { width: W - pad * 2, align: 'center', lineBreak: false });
   cardFooter(doc, event, x, y, W, H, event.contact_phone ? `HELP DESK: ${event.contact_phone}` : 'EVENT HELP DESK');
   doc.restore();
 }
@@ -267,8 +277,8 @@ function cropMarks(doc, x0, y0, cols, rows) {
 
 /**
  * ID cards for many participants.
- *  layout 'card': one card per page (front, back, front, back…) for PVC card printers.
- *  layout 'a4':   9 cards per A4 sheet with crop marks; each front sheet is followed by its
+ *  layout 'card': one card per page (front, back, front, back…) for the card printer.
+ *  layout 'a4':   as many cards as fit on an A4 sheet (4), with crop marks; each front sheet is followed by its
  *                 back sheet, mirrored left-to-right for long-edge duplex printing.
  * bookings: Map(participantId → confirmed bookings), printed on the back as "My experience".
  */
@@ -276,10 +286,11 @@ export async function idCardsPdf(event, participants, { layout = 'card', booking
   const booked = (p) => bookings.get(p.id) || [];
   const doc = newDoc({ info: { Title: `${event.name} — ID cards`, Author: event.name } });
   if (layout === 'a4') {
-    const cols = 3;
-    const rows = 3;
     const pageW = 595.28;
     const pageH = 841.89;
+    // 2 × 2 cards: 200 × 250 mm on the 210 × 297 mm sheet
+    const cols = Math.max(1, Math.floor((pageW - 8 * MM) / CARD_W));
+    const rows = Math.max(1, Math.floor((pageH - 8 * MM) / CARD_H));
     const x0 = (pageW - cols * CARD_W) / 2;
     const y0 = (pageH - rows * CARD_H) / 2;
     for (let i = 0; i < participants.length; i += cols * rows) {

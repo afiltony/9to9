@@ -121,8 +121,8 @@ describe('bulk card printing', () => {
     const res = await c.post('/admin/documents', { _csrf: c.csrf, scope: 'filter', printed: 'no', status: 'approved', kind: 'id', layout: 'a4' });
     assert.equal(res.headers.get('content-type'), 'application/pdf');
     const pdf = Buffer.from(await res.arrayBuffer()).toString('latin1');
-    // 11 cards at 9 per sheet = 2 sheets, each a front page and a back page
-    assert.equal(pdf.match(/\/Type \/Page\b/g).length, 4);
+    // 11 cards at 4 per sheet (10 × 12.5 cm) = 3 sheets, each a front page and a back page
+    assert.equal(pdf.match(/\/Type \/Page\b/g).length, 6);
     assert.equal((await one('SELECT COUNT(*) AS n FROM participants WHERE card_printed_at IS NOT NULL AND event_id = ?', [event.id])).n, 11);
     assert.match(await (await c.request('/admin/documents')).text(), /Generate 0 cards/);
   });

@@ -10,7 +10,7 @@ dependencies (no headless Chrome, no native image libraries).
 |---|---|
 | Runtime | Node.js 20+ · Express 5 · EJS server-rendered pages |
 | Database | MySQL 8 / MariaDB 10.4+ (XAMPP locally, Hostinger MySQL in production) |
-| PDFs | pdfkit (ID card 54 × 85.6 mm, activity card A5) |
+| PDFs | pdfkit (ID card 10 × 12.5 cm, activity card A5) |
 | QR | `qrcode` on the server; `html5-qrcode` scanner in the browser |
 
 ## The workflow
@@ -41,7 +41,7 @@ dependencies (no headless Chrome, no native image libraries).
 - **Booking safety:** each registration runs in one transaction that locks the event row and the chosen slot rows
   (`SELECT … FOR UPDATE`), so a slot can never be overbooked. A test fires 45 simultaneous registrations at a
   20-place slot to prove it.
-- **Cards (PDF):** a CR80 ID card (54 × 85.6 mm, front and back) and an A5 activity card. Fonts are embedded and
+- **Cards (PDF):** a 10 × 12.5 cm ID card (front: photo, details and QR code; back: all booked activities) and an A5 activity card. Fonts are embedded and
   QR codes are drawn as vector graphics. The QR holds only `BASE_URL/checkin/<random token>`, never personal data.
 - **Admin:**
   - Dashboard with metrics, capacity bars and registrations per day.
