@@ -13,7 +13,7 @@ import { CheckinError, checkIn, eventCheckin } from '../services/checkin.js';
 import { filterOptions, listParticipants, markCardsPrinted, parseFilters, STATUSES } from '../services/participants.js';
 import { activityCardPdf, idCardPdf } from '../services/pdf.js';
 import {
-  RegistrationError, addBooking, changeStatus, getParticipantBy, getParticipantSlots, getSchedule, newId,
+  RegistrationError, addBooking, changeStatus, deleteParticipant, getParticipantBy, getParticipantSlots, getSchedule, newId,
   removeBooking, updateParticipant, validateRegistration,
 } from '../services/registration.js';
 import { openProgrammeItems } from './public.js';
@@ -161,7 +161,14 @@ router.post('/admin/participants/:id/status', requirePermission('participants.ma
   res.redirect(303, req.body.back === 'list' ? '/admin/participants?status=pending' : `/admin/participants/${req.participant.id}`);
 });
 
-router.post('/admin/participants/:id/bookings', requirePermission('participants.manage'), verifyCsrf, loadParticipant, async (req, res) => {
+router.post('/admin/participants/:id/delete', requirePermission('participants.delete'), verifyCsrf, loadParticipant, async (req, res) => {
+  const { registrationNumber, photoPath } = await deleteParticipant(req.participant.id, { adminId: req.session.admin.id, ip: req.ip });
+  await removeStored(photoPath);
+  flash(req, 'success', `Registration ${registrationNumber} deleted.`);
+  res.redirect(303, '/admin/participants');
+});
+
+router.post('/admin/participants/:id/bookings',requirePermission('participants.manage'), verifyCsrf, loadParticipant, async (req, res) => {
   const slotId = isUuid(req.body.slot_id) ? req.body.slot_id : null;
   try {
     if (!slotId) throw new RegistrationError('Choose a slot.');

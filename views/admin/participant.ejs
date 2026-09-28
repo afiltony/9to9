@@ -29,6 +29,13 @@
         <a class="btn sm" href="/admin/participants/<%= p.id %>/activity-card.pdf" target="_blank" rel="noopener">Activity card</a>
       <% } %>
       <% if (can('checkin.perform')) { %><a class="btn sm outline" href="/checkin/<%= p.qr_token %>?station=EVENT">Check in</a><% } %>
+      <% if (can('participants.delete')) { %>
+        <form method="post" action="/admin/participants/<%= p.id %>/delete" class="inline-form"
+              data-confirm="Permanently delete <%= p.registration_number %> (<%= fmt.fullName(p) %>)? Their bookings, check-ins and photo are removed and cannot be recovered. Use Cancel instead for a real person who is not coming.">
+          <input type="hidden" name="_csrf" value="<%= csrf() %>">
+          <button class="btn sm danger" type="submit">Delete</button>
+        </form>
+      <% } %>
     </div>
   </div>
   <% if (can('participants.manage') && actions.length) { %>

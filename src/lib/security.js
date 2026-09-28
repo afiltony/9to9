@@ -73,6 +73,7 @@ const PERMISSIONS = {
   'dashboard.view': ALL,
   'participants.view': ['SUPER_ADMIN', 'ADMIN', 'REGISTRATION_MANAGER', 'REPORT_MANAGER'],
   'participants.manage': ['SUPER_ADMIN', 'ADMIN', 'REGISTRATION_MANAGER'],
+  'participants.delete': ['SUPER_ADMIN', 'ADMIN'],
   'documents.print': ['SUPER_ADMIN', 'ADMIN', 'REGISTRATION_MANAGER'],
   'checkin.perform': ['SUPER_ADMIN', 'ADMIN', 'REGISTRATION_MANAGER', 'CHECKIN_STAFF'],
   'reports.view': ['SUPER_ADMIN', 'ADMIN', 'REGISTRATION_MANAGER', 'REPORT_MANAGER'],

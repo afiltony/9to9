@@ -304,6 +304,27 @@ describe('participant management', () => {
     assert.equal((await one('SELECT registration_count FROM activity_slots WHERE id = ?', [slot.id])).registration_count, 1);
   });
 
+  test('admin deletes a test registration; its places are released and the delete is audited', async () => {
+    const slot = await slotFor('Theatre', '15:00:00');
+    const p = await register({ mobile: '9390000001', first_name: 'Dummy Entry' }, [slot.id]);
+    const before = (await one('SELECT registration_count FROM activity_slots WHERE id = ?', [slot.id])).registration_count;
+
+    const manager = await staff('REGISTRATION_MANAGER');
+    assert.doesNotMatch(await (await manager.request(`/admin/participants/${p.id}`)).text(), /\/delete"/);
+    assert.equal((await manager.post(`/admin/participants/${p.id}/delete`, { _csrf: manager.csrf })).status, 403);
+
+    const c = await staff('ADMIN');
+    assert.match(await (await c.request(`/admin/participants/${p.id}`)).text(), new RegExp(`/admin/participants/${p.id}/delete`));
+    const res = await c.post(`/admin/participants/${p.id}/delete`, { _csrf: c.csrf });
+    assert.equal(res.status, 303);
+    assert.equal(await one('SELECT id FROM participants WHERE id = ?', [p.id]), null);
+    assert.equal(await one('SELECT id FROM participant_slots WHERE participant_id = ?', [p.id]), null);
+    assert.equal((await one('SELECT registration_count FROM activity_slots WHERE id = ?', [slot.id])).registration_count, before - 1);
+    const log = await one(`SELECT old_value FROM audit_logs WHERE action = 'PARTICIPANT_DELETED' ORDER BY created_at DESC LIMIT 1`);
+    assert.match(JSON.stringify(log), /Dummy Entry/);
+    assert.equal((await c.request(`/admin/participants/${p.id}`)).status, 404);
+  });
+
   test('participant list filters by activity, card status and sorts', async () => {
     const c = await staff('ADMIN');
     const slot = await slotFor('Theatre', '15:00:00');

@@ -448,6 +448,33 @@ export async function removeBooking(participantId, slotId, { adminId = null, ip 
   });
 }
 
+/**
+ * Permanently deletes a registration (e.g. a test entry). Confirmed bookings give their places
+ * back; bookings, check-ins, documents and emergency contacts go with it (ON DELETE CASCADE).
+ * Returns the photo path so the caller can remove the file.
+ */
+export async function deleteParticipant(participantId, { adminId = null, ip = null } = {}) {
+  return tx(async (conn) => {
+    const [[p]] = await conn.query(
+      'SELECT id, registration_number, first_name, mobile, status, profile_photo_path FROM participants WHERE id = ? FOR UPDATE', [participantId]);
+    if (!p) throw new RegistrationError('Participant not found.', { code: 'NOT_FOUND' });
+    const [bookings] = await conn.query(
+      `SELECT slot_id FROM participant_slots WHERE participant_id = ? AND status = 'confirmed'`, [participantId]);
+    const slotIds = bookings.map((b) => b.slot_id).sort();
+    if (slotIds.length) {
+      await conn.query('SELECT id FROM activity_slots WHERE id IN (?) ORDER BY id FOR UPDATE', [slotIds]);
+      await conn.query(
+        'UPDATE activity_slots SET registration_count = GREATEST(registration_count, 1) - 1 WHERE id IN (?)', [slotIds]);
+    }
+    await conn.query('DELETE FROM participants WHERE id = ?', [participantId]);
+    await audit(conn, {
+      adminId, action: 'PARTICIPANT_DELETED', ip,
+      oldValue: { registration_number: p.registration_number, name: p.first_name, mobile: p.mobile, status: p.status },
+    });
+    return { registrationNumber: p.registration_number, photoPath: p.profile_photo_path };
+  });
+}
+
 /** Admin edit of a participant's details; records changed fields in the audit log. */
 export async function updateParticipant(participantId, values, { photoPath, adminId = null, ip = null } = {}) {
   return tx(async (conn) => {
