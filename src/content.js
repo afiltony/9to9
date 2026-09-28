@@ -12,9 +12,9 @@ export const DEFAULT_CONTENT = {
   intro_text: 'From Emmaus Blindness to Eucharistic Vision (Lk 24:13–35). Come, walk with Him — twenty-four hours of prayer, music, conversation and community, from 9 AM on 10 October to 9 AM on 11 October.',
   features: [
     { title: 'Faith', text: 'Adoration, Garden of Joy (Confession), the Night Vigil and Holy Qurbana.' },
-    { title: 'Music', text: 'Music Ministry at the Central Stage, Ruha Band and the cultural programme.' },
-    { title: 'Community', text: 'Meet with Bishop, theatre, and a day and night together with young people.' },
-    { title: 'Experience', text: 'VR Experience Show, Rosary Making Workshop and the Selfie Point Zone.' },
+    { title: 'Music', text: 'Music Ministry & Talk at the Central Stage, Ruha Band and the cultural programme.' },
+    { title: 'Community', text: 'Life of St. Carlo & Eucharistic Miracles, Blood Donation, and a day and night together with young people.' },
+    { title: 'Experience', text: 'VR Experience Show, Rosary Making Workshop and the Selfie Point.' },
   ],
   organizers: 'Organized by: MAAC | Yuvadeepti SMYM | CSM | Jesus Youth',
   card_instruction: 'Please carry this card throughout the event.',

@@ -25,41 +25,41 @@ export function buildActivities(YEAR) {
     return slot(`${h(from + i)}:00`, `${h(from + i + 1)}:00`);
   });
 
+  // the day-time slots of workshops that pause 1-2 PM (final schedule)
+  const hourlyNoLunch = () => [10, 11, 12, 14, 15, 16, 17, 18].map((h) => {
+    const t = (n) => `${String(n).padStart(2, '0')}:00`;
+    return slot(t(h), t(h + 1));
+  });
+
+  // from Schedule fnl.docx
   return [
-    { name: 'Registration', venue: 'Reception', capacity: null, requiresSlot: false,
+    { name: 'Registration', venue: 'Reception Area', capacity: null, requiresSlot: false,
       slots: [slot('09:00', '09:30', 'Show your registration card at reception')] },
+    { name: 'Installation of Relic & Statue of St. Carlo', venue: 'Central Stage', capacity: null, requiresSlot: false,
+      slots: [slot('09:30', '10:00')] },
     {
-      name: 'Music Ministry', venue: 'Central Stage', capacity: 400, requiresSlot: true,
+      name: 'Music Ministry & Talk', venue: 'Central Stage', capacity: 400, requiresSlot: true,
       slots: [
-        slot('09:30', '10:00', 'Ceremonial Installation of the Relic and Sacred Image of St. Carlo'),
         slot('10:00', '12:00', 'Music Ministry + Eucharistic Talks'),
         slot('13:00', '15:00', 'Music Ministry + Carlo Talk'),
         slot('15:00', '17:00', 'Music Ministry + Carlo Talk'),
         slot('17:00', '19:00', 'Ruha Band, Cultural Programme'),
       ],
     },
-    { name: 'Adoration', venue: 'Incubation Centre', capacity: 30, requiresSlot: true, slots: hourly(10, 19) },
+    { name: 'Adoration', venue: 'Green Matte Studio', capacity: 30, requiresSlot: true, slots: hourly(10, 19) },
     {
       name: 'Night Vigil', venue: 'Central Stage', capacity: 400, requiresSlot: true, multiSlot: true,
       slots: [slot('19:00', '21:00'), slot('21:00', '23:00'), slot('23:00', '05:00+1'), slot('05:00+1', '07:00+1')],
     },
-    { name: 'Rosary Making Workshop', venue: null, capacity: 20, requiresSlot: true, slots: hourly(10, 18) },
-    { name: 'Selfie Point Zone', venue: null, capacity: null, requiresSlot: false, slots: [] },
+    { name: 'Rosary Making Workshop', venue: 'Front Garden', capacity: 20, requiresSlot: true, slots: hourlyNoLunch() },
+    { name: 'Selfie Point', venue: 'Front Garden', capacity: null, requiresSlot: false, slots: [] },
+    { name: 'Blood Donation', venue: 'Incubation Centre', capacity: 5, requiresSlot: true, slots: hourlyNoLunch() },
+    { name: 'Garden of Joy / Confession', venue: 'Theatre Block', capacity: 50, requiresSlot: true, slots: hourlyNoLunch() },
     {
-      name: 'Meet with Bishop', venue: null, capacity: 30, requiresSlot: true,
-      slots: [
-        slot('10:00', '11:00'),
-        slot('11:30', '12:30', 'Mar Joseph Pernthottam'),
-        slot('14:30', '15:30', 'Cardinal Mar George Alencherry'),
-        slot('16:00', '17:00', 'Cardinal Mar George Alencherry'),
-      ],
+      name: 'Life of St. Carlo & Eucharistic Miracles', venue: 'Theatre', capacity: 250, requiresSlot: true,
+      slots: [slot('10:00', '12:00'), slot('13:00', '15:00'), slot('15:00', '17:00')],
     },
-    {
-      name: 'Garden of Joy / Confession', venue: null, capacity: 50, requiresSlot: true,
-      slots: [...hourly(10, 13), ...hourly(14, 17)],
-    },
-    { name: 'Theatre', venue: null, capacity: 250, requiresSlot: true, slots: [slot('10:00', '12:00'), slot('13:00', '15:00'), slot('15:00', '17:00')] },
-    { name: 'VR Experience Show', venue: null, capacity: 40, requiresSlot: true, slots: hourly(10, 18) },
+    { name: 'VR Experience Show', venue: 'Media Department Side', capacity: 40, requiresSlot: true, slots: hourly(10, 19) },
     // bookable with no limit on places; nothing else runs at the same time
     { name: 'Holy Qurbana', venue: 'Central Stage', capacity: null, requiresSlot: true, slots: [slot('07:00+1', '09:00+1')] },
   ];

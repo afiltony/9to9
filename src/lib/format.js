@@ -80,7 +80,8 @@ export function activityIcon(name = '') {
   if (/vigil|night/.test(n)) return 'moon';
   if (/rosary/.test(n)) return 'rosary';
   if (/vr|virtual/.test(n)) return 'vr';
-  if (/theatre|theater|drama/.test(n)) return 'theatre';
+  if (/theatre|theater|drama|carlo|miracle/.test(n)) return 'theatre';
+  if (/blood|donat/.test(n)) return 'heart';
   if (/bishop|meet/.test(n)) return 'users';
   if (/confession|joy|garden/.test(n)) return 'heart';
   if (/selfie|photo/.test(n)) return 'camera';

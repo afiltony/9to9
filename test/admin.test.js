@@ -172,7 +172,7 @@ describe('bulk card printing', () => {
 describe('reports', () => {
   test('every report renders and exports', async () => {
     const c = await staff('REPORT_MANAGER');
-    const slot = await slotFor('Theatre', '10:00:00');
+    const slot = await slotFor('Life of St. Carlo & Eucharistic Miracles', '10:00:00');
     for (const key of ['participants', 'activities', 'slots', 'checkins', 'accommodation', 'food', 'organizations', 'parishes', 'districts']) {
       assert.equal((await c.request(`/admin/reports/${key}`)).status, 200, key);
     }
@@ -307,7 +307,7 @@ describe('participant management', () => {
   });
 
   test('admin deletes a test registration; its places are released and the delete is audited', async () => {
-    const slot = await slotFor('Theatre', '15:00:00');
+    const slot = await slotFor('Life of St. Carlo & Eucharistic Miracles', '15:00:00');
     const p = await register({ mobile: '9390000001', first_name: 'Dummy Entry' }, [slot.id]);
     const before = (await one('SELECT registration_count FROM activity_slots WHERE id = ?', [slot.id])).registration_count;
 
@@ -329,7 +329,7 @@ describe('participant management', () => {
 
   test('participant list filters by activity, card status and sorts', async () => {
     const c = await staff('ADMIN');
-    const slot = await slotFor('Theatre', '15:00:00');
+    const slot = await slotFor('Life of St. Carlo & Eucharistic Miracles', '15:00:00');
     await register({ mobile: '9380000001', first_name: 'Filtered' }, [slot.id]);
     const html = await (await c.request(`/admin/participants?slot=${slot.id}&printed=no&sort=name`)).text();
     assert.match(html, /Filtered/);

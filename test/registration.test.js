@@ -78,7 +78,7 @@ describe('registration', () => {
 
   test('creates a participant with a sequential registration number and books slots', async () => {
     const adoration = await slotFor('Adoration', '10:00:00');
-    const theatre = await slotFor('Theatre', '13:00:00');
+    const theatre = await slotFor('Life of St. Carlo & Eucharistic Miracles', '13:00:00');
     const p1 = await register({}, [adoration.id, theatre.id]);
     const p2 = await register();
     assert.equal(p1.registration_number, '9TO9-000001');
@@ -179,7 +179,7 @@ describe('registration', () => {
 
   test('a failed booking rolls back the whole registration', async () => {
     const rosary = await slotFor('Rosary Making Workshop', '11:00:00');
-    const theatre = await slotFor('Theatre', '13:00:00');
+    const theatre = await slotFor('Life of St. Carlo & Eucharistic Miracles', '13:00:00');
     await query('UPDATE activity_slots SET capacity = 0 WHERE id = ?', [rosary.id]);
     await rejects(register({}, [theatre.id, rosary.id]), 'FULL');
     assert.equal((await one('SELECT COUNT(*) AS n FROM participants')).n, 0);
@@ -207,7 +207,7 @@ describe('registration', () => {
   test('rejects slots from inactive or open-to-all activities', async () => {
     const reception = await slotFor('Registration', '09:00:00');
     await rejects(register({}, [reception.id]), 'SLOT_UNAVAILABLE');
-    const closed = await slotFor('Theatre', '10:00:00');
+    const closed = await slotFor('Life of St. Carlo & Eucharistic Miracles', '10:00:00');
     await query(`UPDATE activity_slots SET status = 'closed' WHERE id = ?`, [closed.id]);
     await rejects(register({}, [closed.id]), 'SLOT_UNAVAILABLE');
   });

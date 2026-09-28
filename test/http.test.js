@@ -85,7 +85,7 @@ describe('public registration over HTTP', () => {
 
   test('full registration with photo redirects to the private documents page', async () => {
     const c = client();
-    const slot = await slotFor('Theatre', '10:00:00');
+    const slot = await slotFor('Life of St. Carlo & Eucharistic Miracles', '10:00:00');
     const res = await registerViaHttp(c, { mobile: '9111111111' }, [slot.id]);
     assert.equal(res.status, 303);
     const loc = res.headers.get('location');
@@ -93,7 +93,7 @@ describe('public registration over HTTP', () => {
 
     const page = await (await c.request(loc)).text();
     assert.match(page, /9TO9-000001/);
-    assert.match(page, /Theatre/);
+    assert.match(page, /Life of St. Carlo/);
 
     const pdf = await c.request(`${loc}/id-card.pdf`);
     assert.equal(pdf.headers.get('content-type'), 'application/pdf');
@@ -180,7 +180,7 @@ describe('public registration over HTTP', () => {
   });
 
   test('a full slot shows a clear message and keeps the rest of the form', async () => {
-    const slot = await slotFor('Meet with Bishop', '10:00:00');
+    const slot = await slotFor('Blood Donation', '10:00:00');
     await query('UPDATE activity_slots SET capacity = 0 WHERE id = ?', [slot.id]);
     const res = await registerViaHttp(client(), { first_name: 'Fullslot Person' }, [slot.id]);
     assert.equal(res.status, 409);
@@ -195,7 +195,7 @@ describe('public registration over HTTP', () => {
 
   test('availability endpoint returns seat counts', async () => {
     const data = await (await client().request('/api/availability')).json();
-    const slot = await slotFor('Theatre', '10:00:00');
+    const slot = await slotFor('Life of St. Carlo & Eucharistic Miracles', '10:00:00');
     assert.equal(data.slots[slot.id].available, 249);
   });
 });
