@@ -74,6 +74,13 @@ describe('QR code and PDFs', () => {
     assert.equal(pdf.toString('latin1').match(/\/Type \/Page\b/g).length, 2);
   });
 
+  test('ID card back lists the bookings and stays one card even with many of them', async () => {
+    const p = await getParticipantBy('id', participant.id);
+    const one = { activity_name: 'Rosary Making Workshop', venue: 'Room 2', start_at: '2099-10-10 15:00:00', end_at: '2099-10-10 16:00:00' };
+    const pdf = await idCardPdf(event, p, Array.from({ length: 20 }, () => one));
+    assert.equal(pdf.toString('latin1').match(/\/Type \/Page\b/g).length, 2);
+  });
+
   test('activity card PDF renders bookings and open programme items, and is repeatable', async () => {
     const p = await getParticipantBy('id', participant.id);
     const bookings = await getParticipantSlots(p.id);

@@ -93,7 +93,7 @@ router.post('/admin/documents', requirePermission('documents.print'), verifyCsrf
 
   let buffer;
   if (kind === 'id') {
-    buffer = await idCardsPdf(req.event, participants, { layout });
+    buffer = await idCardsPdf(req.event, participants, { layout, bookings: await bookingsFor(participants.map((p) => p.id)) });
     if (req.body.mark !== 'no') await markCardsPrinted(participants.map((p) => p.id));
   } else {
     const bookings = await bookingsFor(participants.map((p) => p.id));

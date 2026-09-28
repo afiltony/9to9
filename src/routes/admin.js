@@ -241,7 +241,7 @@ async function sendAdminPdf(req, res, kind) {
   const p = req.participant;
   let buffer;
   if (kind === 'ID_CARD') {
-    buffer = await idCardPdf(req.event, p);
+    buffer = await idCardPdf(req.event, p, await getParticipantSlots(p.id));
     if (req.query.mark !== '0') await markCardsPrinted([p.id]);
   } else {
     const bookings = await getParticipantSlots(p.id);

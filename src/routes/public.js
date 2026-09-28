@@ -202,7 +202,8 @@ function sendPdf(res, buffer, filename) {
 }
 
 router.get('/r/:token/id-card.pdf', loadOwnParticipant, async (req, res) => {
-  sendPdf(res, await idCardPdf(req.event, req.participant), `${req.participant.registration_number}-id-card.pdf`);
+  const bookings = await getParticipantSlots(req.participant.id);
+  sendPdf(res, await idCardPdf(req.event, req.participant, bookings), `${req.participant.registration_number}-id-card.pdf`);
 });
 
 export default router;
