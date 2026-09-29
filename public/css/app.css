@@ -783,6 +783,14 @@ h2, h3 { font-weight: 700; }
   .brand-tagline { padding-left: 0; border-left: 0; font-size: .62rem; white-space: nowrap; }
   .brand-tagline br { display: none; }
 }
+/* sponsor strip below the header */
+.sponsor-bar { background: #0d1b3e; color: #fff; font: 500 .85rem/1.45 "Noto Sans Malayalam", "Nirmala UI", "Kartika", "Malayalam Sangam MN", var(--font-body); }
+.sponsor-bar .container { display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline; column-gap: 12px; row-gap: 0; padding-top: 7px; padding-bottom: 7px; text-align: center; }
+.sponsor-bar strong { color: var(--secondary); font-weight: 700; }
+.sponsor-bar span + span::before { content: "•"; margin-right: 12px; color: rgb(255 255 255 / 45%); }
+@media (max-width: 600px) { .sponsor-bar { font-size: .78rem; } .sponsor-bar .container { column-gap: 6px; padding-top: 5px; padding-bottom: 5px; } .sponsor-bar span + span { flex-basis: 100%; } .sponsor-bar span + span::before { content: none; } }
+@media (max-width: 380px) { .sponsor-bar { font-size: .7rem; } .sponsor-bar .container { padding-left: 10px; padding-right: 10px; } }
+@media print { .sponsor-bar { display: none; } }
 .footer-brand { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; padding-bottom: 28px; margin-bottom: 32px; border-bottom: 1px solid rgb(255 255 255 / 15%); }
 .footer-logo { height: 72px; width: auto; border-radius: 10px; box-shadow: 0 4px 16px rgb(0 0 0 / 25%); }
 .footer-brand strong { display: block; font: 800 1.25rem/1.2 var(--font-display); color: #fff; }
