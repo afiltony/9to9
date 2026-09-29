@@ -21,6 +21,16 @@ export function timeRange(start, end) {
   return `${time(start)} – ${time(end)}`;
 }
 
+/** Short range for chips: '10–11 AM', '11 AM–12 PM', '10:30–11 AM'. */
+export function compactRange(start, end) {
+  const a = parts(start);
+  const b = parts(end);
+  if (!a || !b) return '';
+  const hm = (p) => `${p.h % 12 || 12}${p.mi ? ':' + String(p.mi).padStart(2, '0') : ''}`;
+  const mer = (p) => (p.h < 12 ? 'AM' : 'PM');
+  return mer(a) === mer(b) ? `${hm(a)}–${hm(b)} ${mer(b)}` : `${hm(a)} ${mer(a)}–${hm(b)} ${mer(b)}`;
+}
+
 export function dayLabel(dt) {
   const p = parts(dt);
   if (!p) return '';

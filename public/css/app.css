@@ -798,3 +798,21 @@ h2, h3 { font-weight: 700; }
 .poster-popup-close:focus-visible { outline: 3px solid var(--secondary); outline-offset: 2px; }
 .poster-popup-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; padding: 12px; }
 .poster-popup-actions .btn { flex: 1 1 140px; }
+
+/* home: programme list (from the final schedule) */
+.programme { list-style: none; margin: 0 auto; padding: 0; max-width: 1040px; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--surface); }
+.prog-item { display: grid; grid-template-columns: 40px minmax(200px, 1fr) minmax(0, 1.6fr); gap: 6px 16px; align-items: center; padding: 16px 20px; }
+.prog-item + .prog-item { border-top: 1px solid var(--line); }
+.prog-no { width: 32px; height: 32px; border-radius: 50%; background: var(--heading); color: #fff; display: grid; place-items: center; font: 700 var(--fs-sm)/1 var(--font-display); font-variant-numeric: tabular-nums; }
+.prog-main h3 { margin: 0; font: 700 1.05rem/1.3 var(--font-display); color: var(--heading); }
+.prog-meta { font-size: var(--fs-sm); color: var(--muted); margin-top: 2px; }
+.prog-times { display: flex; flex-wrap: wrap; gap: 6px; }
+.prog-chip { padding: 3px 9px; border-radius: var(--r-sm); background: var(--primary-soft); border: 1px solid var(--primary-tint); color: var(--text); font-size: var(--fs-xs); font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.prog-chip em { font-style: normal; color: var(--heading); font-weight: 800; }
+.prog-chip.all { background: var(--secondary-soft); border-color: transparent; }
+@media (max-width: 720px) {
+  .prog-item { grid-template-columns: 32px minmax(0, 1fr); padding: 14px 14px; gap: 8px 12px; align-items: start; }
+  .prog-no { width: 28px; height: 28px; font-size: var(--fs-xs); }
+  .prog-main h3 { font-size: 1rem; }
+  .prog-times { grid-column: 2; }
+}

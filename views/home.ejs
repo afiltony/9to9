@@ -40,6 +40,35 @@
   </div>
 </section>
 
+<% if (schedule.length) { %>
+<section class="section" id="programme" aria-labelledby="t-prog">
+  <div class="container">
+    <%- include('partials/stitle', { kicker: 'the', title: 'programme', id: 't-prog' }) %>
+    <p class="intro-text" style="margin-bottom:32px"><%= fmt.eventRange(event) %><%= event.venue ? ' · ' + event.venue : '' %></p>
+    <ol class="programme">
+      <% const firstDay = String(event.start_at).slice(0, 10); %>
+      <% schedule.forEach((a, i) => {
+           const cap = Math.max(0, ...a.slots.map((s) => s.capacity || 0)); %>
+        <li class="prog-item">
+          <span class="prog-no" aria-hidden="true"><%= i + 1 %></span>
+          <div class="prog-main">
+            <h3><%= a.name %></h3>
+            <div class="prog-meta"><%= [a.venue, cap ? `${cap} max / slot` : 'Open to all'].filter(Boolean).join(' · ') %></div>
+          </div>
+          <div class="prog-times">
+            <% if (!a.slots.length) { %><span class="prog-chip all">Open all day</span><% } %>
+            <% for (const s of a.slots) { const day = String(s.start_at).slice(0, 10); %>
+              <span class="prog-chip"><% if (day !== firstDay) { %><em><%= fmt.shortDate(s.start_at) %></em> <% } %><%= fmt.compactRange(s.start_at, s.end_at) %></span>
+            <% } %>
+          </div>
+        </li>
+      <% }) %>
+    </ol>
+    <div class="center" style="margin-top:32px"><a class="btn outline" href="/schedule">Full schedule &amp; availability</a></div>
+  </div>
+</section>
+<% } %>
+
 <section class="section band" aria-labelledby="t-exp">
   <div class="container">
     <%- include('partials/stitle', { kicker: 'explore the', title: 'experience', id: 't-exp' }) %>
