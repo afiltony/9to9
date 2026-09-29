@@ -53,7 +53,7 @@
 <% if (!path.startsWith('/r/') && path !== '/register') { %>
 <dialog class="poster-popup" data-poster-popup aria-label="9 TO 9 Meet event poster">
   <button class="poster-popup-close" type="button" data-poster-close aria-label="Close">&times;</button>
-  <img data-src="/static/img/poster-popup.jpg?v=<%= typeof v !== 'undefined' ? v : '' %>" alt="9 TO 9 Meet — Eyes opened, hearts on fire. 24 hour God experience, youth camp inspired by St. Carlo Acutis, 10 October 9 AM to 11 October 9 AM at Media Village. Phone +91 94969 35651." width="900" height="1181">
+  <img data-src="/static/img/poster-popup.jpg?v=<%= typeof v !== 'undefined' ? v : '' %>" alt="9 TO 9 Meet — Eyes opened, hearts on fire. 24 hour God experience, youth camp inspired by St. Carlo Acutis, 10 October 9 AM to 11 October 9 AM at Media Village. Register online at www.mvevents.in. Phone +91 94969 35651." width="900" height="1181">
   <div class="poster-popup-actions">
     <% if (state && state.open && path !== '/register') { %><a class="btn gold" href="/register">Register now</a><% } %>
     <button class="btn light" type="button" data-poster-close>Enter website</button>
