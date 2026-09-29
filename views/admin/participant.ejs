@@ -62,6 +62,7 @@
     <dt>Preferred name</dt><dd><%= dash(p.preferred_name) %></dd>
     <dt>Date of birth</dt><dd><%= p.date_of_birth ? `${p.date_of_birth} (age ${fmt.ageOn(p.date_of_birth, event.start_at)})` : '—' %></dd>
     <dt>Gender</dt><dd><%= dash(p.gender) %></dd>
+    <dt>Forane</dt><dd><%= dash(p.forane) %></dd>
     <dt>Parish</dt><dd><%= dash(p.parish) %></dd>
     <dt>Diocese</dt><dd><%= dash(p.diocese) %></dd>
     <dt>Organization</dt><dd><%= dash(p.organization) %></dd>

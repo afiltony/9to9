@@ -32,6 +32,41 @@
   });
   syncShowIf();
 
+  // ---------------------------------------------------------------- forane → parish
+  // The parish list arrives grouped by forane. Choosing a forane narrows it to that forane's
+  // parishes; "Other" swaps it for a text box; picking a parish first fills in its forane.
+  var foraneSel = form.querySelector('select[name="forane"]');
+  var parishSel = form.querySelector('[data-parish-select]');
+  var parishOther = form.querySelector('[data-parish-other]');
+  var parishGroups = {};
+  var allParishes = parishSel ? parishSel.innerHTML : '';
+  if (parishSel) {
+    parishSel.querySelectorAll('optgroup').forEach(function (g) {
+      parishGroups[g.label] = Array.prototype.map.call(g.children, function (o) { return o.value; });
+    });
+  }
+  function syncParish() {
+    if (!foraneSel || !parishSel) return;
+    var list = parishGroups[foraneSel.value];
+    var other = !!foraneSel.value && !list;
+    var keep = parishSel.value;
+    parishSel.innerHTML = list
+      ? '<option value="">Choose…</option>' + list.map(function (p) { return '<option>' + escapeHtml(p) + '</option>'; }).join('')
+      : allParishes;
+    parishSel.value = keep;
+    if (parishSel.value !== keep) parishSel.value = '';
+    parishSel.hidden = parishSel.disabled = other;
+    parishOther.hidden = parishOther.disabled = !other;
+  }
+  if (foraneSel && parishSel) {
+    foraneSel.addEventListener('change', syncParish);
+    parishSel.addEventListener('change', function () {
+      if (foraneSel.value || !parishSel.value) return;
+      var group = parishSel.options[parishSel.selectedIndex].parentNode;
+      if (group.tagName === 'OPTGROUP') { foraneSel.value = group.label; syncParish(); }
+    });
+  }
+
   // ---------------------------------------------------------------- age from date of birth
   var dob = form.querySelector('[name="date_of_birth"]');
   var ageEl = document.getElementById('age-display');
@@ -264,9 +299,9 @@
     }
     var file = wrapper.querySelector('input[type=file]');
     if (file) return (file.files && file.files.length) || file.dataset.kept ? 'Photo added ✓' : '';
-    var sel = wrapper.querySelector('select:not([name$="_cc"])');
+    var sel = wrapper.querySelector('select:not([name$="_cc"]):not(:disabled)');
     if (sel) return sel.value ? sel.options[sel.selectedIndex].text : '';
-    var input = wrapper.querySelector('input:not([type=hidden]), textarea');
+    var input = wrapper.querySelector('input:not([type=hidden]):not(:disabled), textarea');
     if (!input || !input.value) return '';
     var cc = wrapper.querySelector('select[name$="_cc"]');
     if (input.type === 'date') {
@@ -428,7 +463,7 @@
     try {
       var data = { slots: [] };
       Array.prototype.forEach.call(form.elements, function (el) {
-        if (!el.name || el.type === 'file' || el.type === 'hidden') return;
+        if (!el.name || el.disabled || el.type === 'file' || el.type === 'hidden') return;
         if (el.name === 'slots') { if (el.checked) data.slots.push(el.value); }
         else if (el.type === 'radio') { if (el.checked) data[el.name] = el.value; }
         else if (el.type === 'checkbox') data[el.name] = el.checked;
@@ -455,6 +490,7 @@
 
   // ---------------------------------------------------------------- start
   restoreDraft();
+  syncParish();
   phones.forEach(checkPhone);
   syncShowIf();
   showAge();

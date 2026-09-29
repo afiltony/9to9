@@ -22,6 +22,9 @@
               <select name="<%= f.name %>" id="<%= id %>"><option value="">—</option><% for (const o of f.options) { %><option <%= v === o ? 'selected' : '' %>><%= o %></option><% } %></select>
             <% } else if (f.type === 'textarea') { %>
               <textarea name="<%= f.name %>" id="<%= id %>" rows="2"><%= v %></textarea>
+            <% } else if (f.type === 'parish') { %>
+              <input type="text" name="parish" id="<%= id %>" value="<%= v %>" list="dl-parishes">
+              <datalist id="dl-parishes"><% for (const o of Object.values(parishesByForane).flat()) { %><option value="<%= o %>"><% } %></datalist>
             <% } else { %>
               <input type="<%= f.type === 'tel' ? 'tel' : f.type %>" name="<%= f.name %>" id="<%= id %>" value="<%= v %>">
               <% if (f.countryCode) { %><div class="help">10-digit Indian number, or +country code for others.</div><% } %>

@@ -6,6 +6,7 @@ import { config } from '../config.js';
 import { COUNTRY_CODES, SECTIONS, formFields } from '../fields.js';
 import { one, query } from '../db.js';
 import { nowLocal, shiftLocal } from '../lib/format.js';
+import { PARISHES_BY_FORANE } from '../parishes.js';
 import { requirePermission, verifyCsrf } from '../lib/security.js';
 import { imageUpload, removeStored, saveImage, uploadedFile } from '../lib/uploads.js';
 import { audit } from '../services/audit.js';
@@ -190,7 +191,7 @@ router.post('/admin/participants/:id/bookings',requirePermission('participants.m
 function editForm(req, res, { values, errors = {}, status = 200, message = null }) {
   const fields = formFields(req.event);
   res.status(status).render('admin/participant-edit', {
-    title: `Edit ${req.participant.registration_number}`, p: req.participant, values, errors, message, countryCodes: COUNTRY_CODES,
+    title: `Edit ${req.participant.registration_number}`, p: req.participant, values, errors, message, countryCodes: COUNTRY_CODES, parishesByForane: PARISHES_BY_FORANE,
     sections: SECTIONS.map((s) => ({ ...s, fields: fields.filter((f) => f.section === s.key) })).filter((s) => s.fields.length),
   });
 }

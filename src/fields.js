@@ -1,4 +1,5 @@
 import { eventContent } from './content.js';
+import { FORANES } from './parishes.js';
 
 // Registration form definition. Each field's `mode` is its default; an event's
 // form_config JSON can override it per field with 'required' | 'optional' | 'hidden'.
@@ -11,7 +12,7 @@ export const COUNTRY_CODES = ['+91', '+971', '+974', '+966', '+965', '+968', '+9
 export const SECTIONS = [
   { key: 'personal', title: 'Personal information', step: 'Personal' },
   { key: 'contact', title: 'Contact information', step: 'Contact' },
-  { key: 'church', title: 'Church / organization', step: 'Organization' },
+  { key: 'church', title: 'Parish / organization', step: 'Parish' },
   { key: 'emergency', title: 'Emergency contact', step: 'Emergency' },
   { key: 'requirements', title: 'Accommodation & food', step: 'Requirements' },
 ];
@@ -44,7 +45,9 @@ export const FIELDS = [
   text('pin_code', 'PIN code', 'contact', 'optional', { max: 20, inputmode: 'numeric' }),
   text('country', 'Country', 'contact', 'optional', { default: 'India' }),
 
-  text('parish', 'Parish / Church', 'church', 'hidden', { max: 255 }),
+  { name: 'forane', label: 'Forane', section: 'church', mode: 'required', type: 'select', options: FORANES },
+  // a dropdown of the chosen forane's parishes; free text when the forane is "Other" or not asked
+  { name: 'parish', label: 'Parish', section: 'church', mode: 'required', type: 'parish', max: 255 },
   text('diocese', 'Diocese', 'church', 'hidden', { max: 255 }),
   text('organization', 'Organization / Movement', 'church', 'hidden', { max: 255 }),
   text('institution', 'School / College / Institution', 'church', 'hidden', { max: 255 }),

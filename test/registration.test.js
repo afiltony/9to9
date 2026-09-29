@@ -64,6 +64,18 @@ describe('validation', () => {
     assert.ok(validateRegistration(noPhoto, validBody({ first_name: '' })).errors.first_name, 'locked fields cannot be hidden');
   });
 
+  test('parish must belong to the chosen forane, unless the forane is "Other"', () => {
+    const ok = validateRegistration(event, validBody(), { hasPhoto: true });
+    assert.deepEqual(ok.errors, {});
+    assert.equal(ok.values.forane, 'Changanacherry');
+    assert.ok(validateRegistration(event, validBody({ forane: 'Kottayam' }), { hasPhoto: true }).errors.parish, 'parish from another forane');
+    assert.ok(validateRegistration(event, validBody({ forane: 'Nowhere' }), { hasPhoto: true }).errors.forane);
+    const other = validateRegistration(event, validBody({ forane: 'Other (outside the Archdiocese)', parish: 'St. Thomas Church, Pala' }), { hasPhoto: true });
+    assert.deepEqual(other.errors, {});
+    assert.equal(other.values.parish, 'St. Thomas Church, Pala');
+    assert.ok(validateRegistration(event, validBody({ parish: '' }), { hasPhoto: true }).errors.parish, 'parish is required');
+  });
+
   test('accommodation, when switched back on in settings, drops details unless requested', () => {
     const withAccommodation = { ...event, form_config: JSON.stringify({ accommodation_required: 'optional', arrival_at: 'optional' }) };
     const { values } = validateRegistration(withAccommodation, validBody({ arrival_at: '2099-10-10T08:00' }));

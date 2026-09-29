@@ -3,6 +3,7 @@ import { config } from '../config.js';
 import { one, query, tx } from '../db.js';
 import { CONSENTS, LATIN_NAME_PATTERN, formFields } from '../fields.js';
 import { nowLocal, timeRange } from '../lib/format.js';
+import { PARISHES_BY_FORANE } from '../parishes.js';
 import { audit } from './audit.js';
 
 export class RegistrationError extends Error {
@@ -127,6 +128,10 @@ export function validateRegistration(event, body, { hasPhoto = false, adminEdit 
       else v = `${v.replace('T', ' ')}:00`;
     } else if (f.type === 'select') {
       if (!f.options.includes(v)) errors[f.name] = `Choose a valid ${f.label.toLowerCase()}.`;
+    } else if (f.type === 'parish') {
+      // must belong to the chosen forane; admins may correct it to anything
+      const list = PARISHES_BY_FORANE[values.forane];
+      if (list && !adminEdit && !list.includes(v)) errors[f.name] = 'Choose your parish from the list.';
     } else if (f.latin) {
       // cards are printed with Latin fonts, so names must be typed in English letters
       if (!NAME_RE.test(v)) errors[f.name] = 'Please type the name in English letters.';
@@ -169,7 +174,7 @@ export function findConflicts(slots) {
 const PARTICIPANT_COLUMNS = [
   'first_name', 'middle_name', 'last_name', 'preferred_name', 'date_of_birth', 'gender',
   'mobile', 'whatsapp', 'email', 'address', 'locality', 'district', 'state', 'pin_code', 'country',
-  'parish', 'diocese', 'organization', 'institution', 'youth_group', 'coordinator_name', 'coordinator_mobile',
+  'forane', 'parish', 'diocese', 'organization', 'institution', 'youth_group', 'coordinator_name', 'coordinator_mobile',
   'accommodation_required', 'arrival_at', 'departure_at', 'accommodation_notes',
   'food_required', 'food_preference', 'dietary_notes',
   'consent_information', 'consent_rules', 'consent_media',

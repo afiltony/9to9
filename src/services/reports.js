@@ -38,13 +38,13 @@ export const REPORTS = {
       const rows = await participantRows(event, filters);
       return {
         columns: [col('registration_number', 'Reg. no', 14), col('name', 'Name', 26), col('status', 'Status', 11), col('gender', 'Gender', 9),
-          col('age', 'DOB', 11), col('mobile', 'Mobile', 14), col('email', 'Email', 24), col('parish', 'Parish', 24), col('diocese', 'Diocese', 18),
+          col('age', 'DOB', 11), col('mobile', 'Mobile', 14), col('email', 'Email', 24), col('forane', 'Forane', 16), col('parish', 'Parish', 30), col('diocese', 'Diocese', 18),
           col('organization', 'Organization', 20), col('district', 'District', 14), col('emergency', 'Emergency contact', 28),
           col('accommodation', 'Accommodation', 12), col('food', 'Food', 16), col('activities', 'Activities', 50),
           col('checked_in', 'Checked in', 16), col('registered', 'Registered', 18)],
         rows: rows.map((p) => ({
           registration_number: p.registration_number, name: fullName(p), status: p.status, gender: p.gender, age: p.date_of_birth,
-          mobile: p.mobile, email: p.email, parish: p.parish, diocese: p.diocese, organization: p.organization, district: p.district,
+          mobile: p.mobile, email: p.email, forane: p.forane, parish: p.parish, diocese: p.diocese, organization: p.organization, district: p.district,
           emergency: [p.em_name, p.em_relationship && `(${p.em_relationship})`, p.em_mobile].filter(Boolean).join(' '),
           accommodation: p.accommodation_required ? 'Yes' : 'No', food: p.food_required ? p.food_preference || 'Yes' : 'No',
           activities: p.activities || '', checked_in: p.checked_in_at ? dateTime(p.checked_in_at) : '', registered: dateTime(p.created_at),
@@ -175,6 +175,7 @@ export const REPORTS = {
     },
   },
   organizations: { title: 'Organization report', description: 'Registrations per organization / movement.', build: groupReport('organization', 'Organization') },
+  foranes: { title: 'Forane report', description: 'Registrations per forane.', build: groupReport('forane', 'Forane') },
   parishes: { title: 'Parish report', description: 'Registrations per parish.', build: groupReport('parish', 'Parish') },
   districts: { title: 'District report', description: 'Registrations per district.', build: groupReport('district', 'District') },
 };

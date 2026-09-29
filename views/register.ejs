@@ -15,6 +15,7 @@
   ];
   const isOn = (v) => v === 'on' || v === '1' || v === true;
   const hasValues = Object.keys(values).length > 0;
+  const hasForane = sections.some((s) => s.fields.some((f) => f.name === 'forane'));
 %>
 <div class="wizard">
   <div class="container narrow">
@@ -77,7 +78,18 @@
               </label>
             <% } else { %>
               <label for="<%= id %>"><%= f.label %><% if (f.required) { %> <span class="req">*</span><% } %></label>
-              <% if (f.type === 'select') { %>
+              <% if (f.type === 'parish' && hasForane) { const other = values.forane === otherForane; %>
+                <%# every parish grouped by forane; register.js narrows it to the chosen forane.
+                    Only one of the select and the text box is enabled, so only one is submitted. %>
+                <select name="parish" id="<%= id %>" <%= f.required ? 'required' : '' %> <%= other ? 'hidden disabled' : '' %> data-parish-select>
+                  <option value="">Choose…</option>
+                  <% for (const [forane, parishes] of Object.entries(parishesByForane)) { %>
+                    <optgroup label="<%= forane %>"><% for (const o of parishes) { %><option <%= v === o ? 'selected' : '' %>><%= o %></option><% } %></optgroup>
+                  <% } %>
+                </select>
+                <input type="text" name="parish" value="<%= other ? v : '' %>" maxlength="<%= f.max %>" aria-label="<%= f.label %>" placeholder="Parish name and place"
+                       <%= f.required ? 'required' : '' %> <%= other ? '' : 'hidden disabled' %> data-parish-other>
+              <% } else if (f.type === 'select') { %>
                 <select name="<%= f.name %>" id="<%= id %>" <%= f.required ? 'required' : '' %>>
                   <option value="">Choose…</option>
                   <% for (const o of f.options) { %><option <%= v === o ? 'selected' : '' %>><%= o %></option><% } %>
@@ -93,7 +105,7 @@
                          pattern="[0-9 +\-]{8,20}" autocomplete="<%= f.autocomplete || 'tel-national' %>">
                 </div>
               <% } else { %>
-                <input type="<%= f.type %>" name="<%= f.name %>" id="<%= id %>" value="<%= v %>"
+                <input type="<%= f.type === 'parish' ? 'text' : f.type %>" name="<%= f.name %>" id="<%= id %>" value="<%= v %>"
                   <%= f.max && f.type !== 'date' && f.type !== 'datetime-local' ? `maxlength=${f.max}` : '' %> <%= f.required ? 'required' : '' %>
                   <% if (f.autocomplete) { %>autocomplete="<%= f.autocomplete %>"<% } %>
                   <% if (f.inputmode) { %>inputmode="<%= f.inputmode %>"<% } %>

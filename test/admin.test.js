@@ -75,12 +75,14 @@ describe('public pages', () => {
     assert.match(html, /Sun 11 Oct/);
   });
 
-  test('registration wizard has five steps with one name field', async () => {
+  test('registration wizard has six steps with one name field', async () => {
     const html = await (await client().request('/register')).text();
-    assert.ok(!/<span class="t">(Organization|Requirements)<\/span>/.test(html), 'organization and requirements steps are off');
+    assert.ok(!/<span class="t">Requirements<\/span>/.test(html), 'requirements step is off');
     assert.match(html, /Full name \(as printed on your card\)/);
-    assert.ok(!html.includes('name="last_name"') && !html.includes('name="parish"') && !html.includes('name="accommodation_required"'));
-    for (const step of ['Personal', 'Contact', 'Emergency', 'Activities', 'Confirm']) {
+    assert.ok(!html.includes('name="last_name"') && !html.includes('name="accommodation_required"'));
+    assert.match(html, /<select name="forane"[^>]*required/);
+    assert.match(html, /<optgroup label="Kottayam"><option >Assumption Church, Eravinalloor<\/option>/);
+    for (const step of ['Personal', 'Contact', 'Parish', 'Emergency', 'Activities', 'Confirm']) {
       assert.match(html, new RegExp(`<span class="t">${step}</span>`));
     }
     assert.ok(!html.includes('<span class="t">Consent</span>'), 'consent is part of the confirm step');
@@ -173,7 +175,7 @@ describe('reports', () => {
   test('every report renders and exports', async () => {
     const c = await staff('REPORT_MANAGER');
     const slot = await slotFor('Life of St. Carlo & Eucharistic Miracles', '10:00:00');
-    for (const key of ['participants', 'activities', 'slots', 'checkins', 'accommodation', 'food', 'organizations', 'parishes', 'districts']) {
+    for (const key of ['participants', 'activities', 'slots', 'checkins', 'accommodation', 'food', 'organizations', 'foranes', 'parishes', 'districts']) {
       assert.equal((await c.request(`/admin/reports/${key}`)).status, 200, key);
     }
     assert.equal((await c.request(`/admin/reports/roster?slot=${slot.id}`)).status, 200);
