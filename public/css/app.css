@@ -799,6 +799,12 @@ h2, h3 { font-weight: 700; }
 .poster-popup-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; padding: 12px; }
 .poster-popup-actions .btn { flex: 1 1 140px; }
 
+/* registration: forane and parish side by side (always, when typed by people from outside the Archdiocese) */
+.parish-pair { display: grid; gap: 0 16px; }
+@media (min-width: 620px) { .parish-pair { grid-template-columns: 1fr 1fr; } }
+.parish-pair.outside { grid-template-columns: 1fr 1fr; }
+.parish-pair > .field { min-width: 0; }
+
 /* home: programme list (from the final schedule) */
 .programme { list-style: none; margin: 0 auto; padding: 0; max-width: 1040px; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--surface); }
 .prog-item { display: grid; grid-template-columns: 40px minmax(200px, 1fr) minmax(0, 1.6fr); gap: 6px 16px; align-items: center; padding: 16px 20px; }

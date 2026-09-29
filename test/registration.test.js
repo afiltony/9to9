@@ -64,15 +64,18 @@ describe('validation', () => {
     assert.ok(validateRegistration(noPhoto, validBody({ first_name: '' })).errors.first_name, 'locked fields cannot be hidden');
   });
 
-  test('parish must belong to the chosen forane, unless the forane is "Other"', () => {
+  test('parish must belong to the chosen forane, unless typed by someone from outside the Archdiocese', () => {
     const ok = validateRegistration(event, validBody(), { hasPhoto: true });
     assert.deepEqual(ok.errors, {});
     assert.equal(ok.values.forane, 'Changanacherry');
     assert.ok(validateRegistration(event, validBody({ forane: 'Kottayam' }), { hasPhoto: true }).errors.parish, 'parish from another forane');
     assert.ok(validateRegistration(event, validBody({ forane: 'Nowhere' }), { hasPhoto: true }).errors.forane);
-    const other = validateRegistration(event, validBody({ forane: 'Other (outside the Archdiocese)', parish: 'St. Thomas Church, Pala' }), { hasPhoto: true });
+    const outside = { outside_archdiocese: 'on', forane: 'Pala', parish: 'St. Thomas Cathedral, Pala' };
+    const other = validateRegistration(event, validBody(outside), { hasPhoto: true });
     assert.deepEqual(other.errors, {});
-    assert.equal(other.values.parish, 'St. Thomas Church, Pala');
+    assert.equal(other.values.forane, 'Pala');
+    assert.equal(other.values.parish, 'St. Thomas Cathedral, Pala');
+    assert.ok(validateRegistration(event, validBody({ ...outside, forane: '' }), { hasPhoto: true }).errors.forane, 'typed forane is still required');
     assert.ok(validateRegistration(event, validBody({ parish: '' }), { hasPhoto: true }).errors.parish, 'parish is required');
   });
 

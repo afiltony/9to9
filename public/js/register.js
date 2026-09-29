@@ -34,8 +34,12 @@
 
   // ---------------------------------------------------------------- forane → parish
   // The parish list arrives grouped by forane. Choosing a forane narrows it to that forane's
-  // parishes; "Other" swaps it for a text box; picking a parish first fills in its forane.
-  var foraneSel = form.querySelector('select[name="forane"]');
+  // parishes, and picking a parish first fills in its forane. Ticking "outside the Archdiocese"
+  // swaps both dropdowns for text boxes.
+  var outsideBox = form.querySelector('[data-outside]');
+  var parishPair = form.querySelector('[data-parish-pair]');
+  var foraneSel = form.querySelector('[data-forane-select]');
+  var foraneOther = form.querySelector('[data-forane-other]');
   var parishSel = form.querySelector('[data-parish-select]');
   var parishOther = form.querySelector('[data-parish-other]');
   var parishGroups = {};
@@ -45,20 +49,30 @@
       parishGroups[g.label] = Array.prototype.map.call(g.children, function (o) { return o.value; });
     });
   }
+  function swap(select, text, typed) {
+    select.hidden = select.disabled = typed;
+    text.hidden = text.disabled = !typed;
+  }
   function syncParish() {
     if (!foraneSel || !parishSel) return;
+    var outside = outsideBox.checked;
+    swap(foraneSel, foraneOther, outside);
+    swap(parishSel, parishOther, outside);
+    parishPair.classList.toggle('outside', outside);
+    if (outside) return;
     var list = parishGroups[foraneSel.value];
-    var other = !!foraneSel.value && !list;
     var keep = parishSel.value;
     parishSel.innerHTML = list
       ? '<option value="">Choose…</option>' + list.map(function (p) { return '<option>' + escapeHtml(p) + '</option>'; }).join('')
       : allParishes;
     parishSel.value = keep;
     if (parishSel.value !== keep) parishSel.value = '';
-    parishSel.hidden = parishSel.disabled = other;
-    parishOther.hidden = parishOther.disabled = !other;
   }
   if (foraneSel && parishSel) {
+    outsideBox.addEventListener('change', function () {
+      syncParish();
+      (outsideBox.checked ? foraneOther : foraneSel).focus();
+    });
     foraneSel.addEventListener('change', syncParish);
     parishSel.addEventListener('change', function () {
       if (foraneSel.value || !parishSel.value) return;

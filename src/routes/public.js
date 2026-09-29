@@ -4,7 +4,7 @@ import rateLimit from 'express-rate-limit';
 import { config } from '../config.js';
 import { eventContent } from '../content.js';
 import { COUNTRY_CODES, CONSENTS, LATIN_NAME_PATTERN, SECTIONS, formFields } from '../fields.js';
-import { OTHER_FORANE, PARISHES_BY_FORANE } from '../parishes.js';
+import { PARISHES_BY_FORANE } from '../parishes.js';
 import { verifyCsrf } from '../lib/security.js';
 import { imageUpload, removeStored, saveImage, storedExists, uploadedFile } from '../lib/uploads.js';
 import { idCardPdf, qrDataUrl } from '../services/pdf.js';
@@ -109,7 +109,6 @@ async function renderForm(req, res, { values = {}, errors = {}, message = null, 
     keptPhoto: !!req.session.pendingPhoto,
     latinPattern: LATIN_NAME_PATTERN,
     parishesByForane: PARISHES_BY_FORANE,
-    otherForane: OTHER_FORANE,
     maxPhotoMb: Math.round(config.maxPhotoBytes / 1024 / 1024),
     maxPhotoBytes: config.maxPhotoBytes,
     maxUploadMb: Math.round(config.maxUploadBytes / 1024 / 1024),

@@ -81,6 +81,7 @@ describe('public pages', () => {
     assert.match(html, /Full name \(as printed on your card\)/);
     assert.ok(!html.includes('name="last_name"') && !html.includes('name="accommodation_required"'));
     assert.match(html, /<select name="forane"[^>]*required/);
+    assert.match(html, /name="outside_archdiocese"/);
     assert.match(html, /<optgroup label="Kottayam"><option >Assumption Church, Eravinalloor<\/option>/);
     for (const step of ['Personal', 'Contact', 'Parish', 'Emergency', 'Activities', 'Confirm']) {
       assert.match(html, new RegExp(`<span class="t">${step}</span>`));

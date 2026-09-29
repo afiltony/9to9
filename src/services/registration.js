@@ -83,6 +83,7 @@ export function validateRegistration(event, body, { hasPhoto = false, adminEdit 
   const fields = formFields(event);
   const values = {};
   const errors = {};
+  const outside = body.outside_archdiocese === 'on' || body.outside_archdiocese === '1' || body.outside_archdiocese === true;
 
   for (const f of fields) {
     if (f.type === 'photo') {
@@ -128,9 +129,12 @@ export function validateRegistration(event, body, { hasPhoto = false, adminEdit 
       else v = `${v.replace('T', ' ')}:00`;
     } else if (f.type === 'select') {
       if (!f.options.includes(v)) errors[f.name] = `Choose a valid ${f.label.toLowerCase()}.`;
+    } else if (f.type === 'forane') {
+      // typed by people from outside the Archdiocese; admins may correct it to anything
+      if (!outside && !adminEdit && !f.options.includes(v)) errors[f.name] = 'Choose your forane from the list.';
     } else if (f.type === 'parish') {
-      // must belong to the chosen forane; admins may correct it to anything
-      const list = PARISHES_BY_FORANE[values.forane];
+      // must belong to the chosen forane
+      const list = !outside && PARISHES_BY_FORANE[values.forane];
       if (list && !adminEdit && !list.includes(v)) errors[f.name] = 'Choose your parish from the list.';
     } else if (f.latin) {
       // cards are printed with Latin fonts, so names must be typed in English letters

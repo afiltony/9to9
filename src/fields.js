@@ -45,8 +45,9 @@ export const FIELDS = [
   text('pin_code', 'PIN code', 'contact', 'optional', { max: 20, inputmode: 'numeric' }),
   text('country', 'Country', 'contact', 'optional', { default: 'India' }),
 
-  { name: 'forane', label: 'Forane', section: 'church', mode: 'required', type: 'select', options: FORANES },
-  // a dropdown of the chosen forane's parishes; free text when the forane is "Other" or not asked
+  // dropdowns for the Archdiocese of Changanacherry; people from outside it tick
+  // "outside_archdiocese" and type both instead
+  { name: 'forane', label: 'Forane', section: 'church', mode: 'required', type: 'forane', max: 100, options: FORANES },
   { name: 'parish', label: 'Parish', section: 'church', mode: 'required', type: 'parish', max: 255 },
   text('diocese', 'Diocese', 'church', 'hidden', { max: 255 }),
   text('organization', 'Organization / Movement', 'church', 'hidden', { max: 255 }),

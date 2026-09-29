@@ -22,6 +22,9 @@
               <select name="<%= f.name %>" id="<%= id %>"><option value="">—</option><% for (const o of f.options) { %><option <%= v === o ? 'selected' : '' %>><%= o %></option><% } %></select>
             <% } else if (f.type === 'textarea') { %>
               <textarea name="<%= f.name %>" id="<%= id %>" rows="2"><%= v %></textarea>
+            <% } else if (f.type === 'forane') { %>
+              <input type="text" name="forane" id="<%= id %>" value="<%= v %>" list="dl-foranes">
+              <datalist id="dl-foranes"><% for (const o of Object.keys(parishesByForane)) { %><option value="<%= o %>"><% } %></datalist>
             <% } else if (f.type === 'parish') { %>
               <input type="text" name="parish" id="<%= id %>" value="<%= v %>" list="dl-parishes">
               <datalist id="dl-parishes"><% for (const o of Object.values(parishesByForane).flat()) { %><option value="<%= o %>"><% } %></datalist>

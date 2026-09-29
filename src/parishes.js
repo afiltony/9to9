@@ -2,8 +2,6 @@
 // https://www.archdiocesechanganacherry.org/welcome/forane_list (fetched 29 Sep 2026).
 // Parish names are "Church, Place" because many churches share a name.
 
-export const OTHER_FORANE = 'Other (outside the Archdiocese)';
-
 export const PARISHES_BY_FORANE = {
   "Alappuzha": [
     "Immaculate Heart Church, Kaithavana",
@@ -283,4 +281,4 @@ export const PARISHES_BY_FORANE = {
   ],
 };
 
-export const FORANES = [...Object.keys(PARISHES_BY_FORANE), OTHER_FORANE];
+export const FORANES = Object.keys(PARISHES_BY_FORANE);

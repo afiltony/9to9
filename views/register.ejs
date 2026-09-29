@@ -16,6 +16,7 @@
   const isOn = (v) => v === 'on' || v === '1' || v === true;
   const hasValues = Object.keys(values).length > 0;
   const hasForane = sections.some((s) => s.fields.some((f) => f.name === 'forane'));
+  const outside = hasForane && isOn(values.outside_archdiocese);
 %>
 <div class="wizard">
   <div class="container narrow">
@@ -50,10 +51,18 @@
             <div><h2 id="h-<%= section.key %>"><%= section.title %></h2><p><%= stepIntro[section.key] %></p></div>
           </div>
 
-          <% for (const f of section.fields) {
+          <% const pair = section.fields.filter((x) => x.type === 'forane' || x.type === 'parish');
+             for (const f of section.fields) {
                const v = values[f.name] ?? (hasValues ? '' : (f.default ?? ''));
                const err = errors[f.name];
                const id = 'f_' + f.name; %>
+            <% if (f === pair[0]) { %>
+              <% if (hasForane) { %>
+                <div class="field"><label class="check"><input type="checkbox" name="outside_archdiocese" value="on" <%= outside ? 'checked' : '' %> data-outside>
+                  <span>I am from outside the Archdiocese of Changanacherry <span class="help" style="display:block">Tick to type your forane and parish yourself.</span></span></label></div>
+              <% } %>
+              <div class="parish-pair<%= outside ? ' outside' : '' %>" data-parish-pair>
+            <% } %>
             <div class="field<%= err ? ' has-error' : '' %>" data-field="<%= f.name %>" data-label="<%= f.label %>"<% if (f.showIf) { %> data-show-if="<%= f.showIf %>"<% } %>>
             <% if (f.type === 'checkbox') { %>
               <span class="label" id="<%= id %>_l"><%= f.label.replace(/^I need /, 'Do you need ') %>?</span>
@@ -78,17 +87,25 @@
               </label>
             <% } else { %>
               <label for="<%= id %>"><%= f.label %><% if (f.required) { %> <span class="req">*</span><% } %></label>
-              <% if (f.type === 'parish' && hasForane) { const other = values.forane === otherForane; %>
-                <%# every parish grouped by forane; register.js narrows it to the chosen forane.
-                    Only one of the select and the text box is enabled, so only one is submitted. %>
-                <select name="parish" id="<%= id %>" <%= f.required ? 'required' : '' %> <%= other ? 'hidden disabled' : '' %> data-parish-select>
+              <% if (f.type === 'forane') { %>
+                <%# the forane and parish dropdowns swap for text boxes when "outside" is ticked.
+                    Only one of each pair is enabled, so only one is submitted. %>
+                <select name="forane" id="<%= id %>" <%= f.required ? 'required' : '' %> <%= outside ? 'hidden disabled' : '' %> data-forane-select>
+                  <option value="">Choose…</option>
+                  <% for (const o of f.options) { %><option <%= v === o ? 'selected' : '' %>><%= o %></option><% } %>
+                </select>
+                <input type="text" name="forane" value="<%= outside ? v : '' %>" maxlength="<%= f.max %>" aria-label="<%= f.label %>" placeholder="Your forane"
+                       <%= f.required ? 'required' : '' %> <%= outside ? '' : 'hidden disabled' %> data-forane-other>
+              <% } else if (f.type === 'parish' && hasForane) { %>
+                <%# every parish grouped by forane; register.js narrows it to the chosen forane %>
+                <select name="parish" id="<%= id %>" <%= f.required ? 'required' : '' %> <%= outside ? 'hidden disabled' : '' %> data-parish-select>
                   <option value="">Choose…</option>
                   <% for (const [forane, parishes] of Object.entries(parishesByForane)) { %>
                     <optgroup label="<%= forane %>"><% for (const o of parishes) { %><option <%= v === o ? 'selected' : '' %>><%= o %></option><% } %></optgroup>
                   <% } %>
                 </select>
-                <input type="text" name="parish" value="<%= other ? v : '' %>" maxlength="<%= f.max %>" aria-label="<%= f.label %>" placeholder="Parish name and place"
-                       <%= f.required ? 'required' : '' %> <%= other ? '' : 'hidden disabled' %> data-parish-other>
+                <input type="text" name="parish" value="<%= outside ? v : '' %>" maxlength="<%= f.max %>" aria-label="<%= f.label %>" placeholder="Parish name and place"
+                       <%= f.required ? 'required' : '' %> <%= outside ? '' : 'hidden disabled' %> data-parish-other>
               <% } else if (f.type === 'select') { %>
                 <select name="<%= f.name %>" id="<%= id %>" <%= f.required ? 'required' : '' %>>
                   <option value="">Choose…</option>
@@ -119,6 +136,7 @@
             <% if (f.help && f.type !== 'photo') { %><div class="help"><%= f.help %></div><% } %>
             <% if (err) { %><div class="error-text" role="alert"><%= err %></div><% } %>
             </div>
+            <% if (f === pair[pair.length - 1]) { %></div><% } %>
           <% } %>
         </fieldset>
       <% }) %>
