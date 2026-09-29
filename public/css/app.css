@@ -777,7 +777,12 @@ h2, h3 { font-weight: 700; }
 /* ---------------------------------------------------------------- logo in header and footer */
 .brand-logo { height: 46px; width: auto; border-radius: 8px; box-shadow: 0 1px 3px rgb(0 40 100 / 25%); }
 .brand-tagline { font: 700 .66rem/1.25 var(--font-display); letter-spacing: .12em; text-transform: uppercase; color: var(--heading); padding-left: 12px; border-left: 2px solid var(--line); }
-@media (max-width: 420px) { .brand-logo { height: 40px; } .brand-tagline { display: none; } }
+@media (max-width: 600px) {
+  .brand { flex-direction: column; align-items: flex-start; gap: 3px; padding: 6px 0; }
+  .brand-logo { height: 38px; }
+  .brand-tagline { padding-left: 0; border-left: 0; font-size: .62rem; white-space: nowrap; }
+  .brand-tagline br { display: none; }
+}
 .footer-brand { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; padding-bottom: 28px; margin-bottom: 32px; border-bottom: 1px solid rgb(255 255 255 / 15%); }
 .footer-logo { height: 72px; width: auto; border-radius: 10px; box-shadow: 0 4px 16px rgb(0 0 0 / 25%); }
 .footer-brand strong { display: block; font: 800 1.25rem/1.2 var(--font-display); color: #fff; }
