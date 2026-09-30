@@ -114,9 +114,9 @@ function drawPhoto(doc, p, cx, cy, r, disc) {
 
 // the event wordmark printed at the top of the card front
 const WORDMARK = path.join(ROOT, 'public/img/logo-wordmark.jpg');
-// the organizers' logo strip (916 × 162 px), printed above the footer of the card front
+// the organizers' logo strip (1949 × 337 px), printed above the footer of the card front
 const ORGANIZERS = path.join(ROOT, 'public/img/organizers.jpg');
-const ORGANIZERS_RATIO = 916 / 162;
+const ORGANIZERS_RATIO = 1949 / 337;
 
 /** Pale quarter-circle pattern behind the card front, as on the event's printed badges. */
 function drawPattern(doc, x, y, W, H, tint) {
@@ -200,7 +200,7 @@ function drawIdFront(doc, event, p, x, y) {
   const stripH = 40;
   const stripW = stripH * ORGANIZERS_RATIO;
   const sy = y + H - 20 - stripH - 3;
-  doc.rect(x, sy - 3, W, stripH + 3).fill('#ffffff');
+  doc.rect(x, sy - 3, W, stripH + 3).fill('#f6f6f6'); // the strip's own background colour
   try { doc.image(ORGANIZERS, x + (W - stripW) / 2, sy, { width: stripW, height: stripH }); } catch { /* no strip */ }
 
   // parish, diocese and organization are optional: only print what was collected
