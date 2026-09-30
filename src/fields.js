@@ -7,7 +7,9 @@ import { FORANES } from './parishes.js';
 
 export const GENDERS = ['Male', 'Female'];
 export const FOOD_PREFERENCES = ['Vegetarian', 'Non-vegetarian', 'Other'];
-export const ORGANIZATIONS = ['MAAC', 'Yuvadeepti SMYM', 'CSM', 'Jesus Youth'];
+// 'None' is stored as chosen (so reports can count it) but never printed on the card
+export const NO_ORGANIZATION = 'None';
+export const ORGANIZATIONS = ['MAAC', 'Yuvadeepti SMYM', 'CSM', 'Jesus Youth', NO_ORGANIZATION];
 export const COUNTRY_CODES = ['+91', '+971', '+974', '+966', '+965', '+968', '+973', '+44', '+1', '+61', '+64', '+49', '+39'];
 
 export const SECTIONS = [
@@ -55,7 +57,7 @@ export const FIELDS = [
   { name: 'parish', label: 'Parish', section: 'church', mode: 'required', type: 'parish', max: 255 },
   // typed only by people from outside the Archdiocese; everyone else is saved as in it
   text('diocese', 'Diocese', 'church', 'optional', { max: 255, outsideOnly: true }),
-  // optional: people who belong to none of the movements leave it blank
+  // optional: people who belong to none of the movements choose 'None' or leave it blank
   { name: 'organization', label: 'Organization you belong to', section: 'church', mode: 'optional', type: 'select', max: 255, options: ORGANIZATIONS },
   text('institution', 'School / College / Institution', 'church', 'hidden', { max: 255 }),
   text('youth_group', 'Youth group', 'church', 'hidden', { max: 255 }),

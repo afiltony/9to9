@@ -94,6 +94,7 @@ describe('validation', () => {
     const ok = validateRegistration(event, validBody({ organization: 'Jesus Youth' }), { hasPhoto: true });
     assert.deepEqual(ok.errors, {});
     assert.equal(ok.values.organization, 'Jesus Youth');
+    assert.equal(validateRegistration(event, validBody({ organization: 'None' }), { hasPhoto: true }).values.organization, 'None');
     assert.ok(validateRegistration(event, validBody({ organization: 'Something else' }), { hasPhoto: true }).errors.organization);
   });
 

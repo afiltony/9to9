@@ -4,6 +4,7 @@ import PDFDocument from 'pdfkit';
 import QRCode from 'qrcode';
 import { config, ROOT } from '../config.js';
 import { eventContent } from '../content.js';
+import { NO_ORGANIZATION } from '../fields.js';
 import { dayLabel, displayName, fullName, shortDate, timeRange } from '../lib/format.js';
 import { ARCHDIOCESE, PARISHES_BY_FORANE } from '../parishes.js';
 
@@ -204,7 +205,7 @@ function drawIdFront(doc, event, p, x, y) {
   try { doc.image(ORGANIZERS, x + (W - stripW) / 2, sy, { width: stripW, height: stripH }); } catch { /* no strip */ }
 
   // parish, diocese and organization are optional: only print what was collected
-  const org = p.organization || p.institution || p.youth_group;
+  const org = (p.organization !== NO_ORGANIZATION && p.organization) || p.institution || p.youth_group;
   const details = [
     p.parish && ['Parish', p.parish],
     dioceseOf(p) && ['Diocese', dioceseOf(p)],
