@@ -79,6 +79,14 @@ describe('validation', () => {
     assert.ok(validateRegistration(event, validBody({ parish: '' }), { hasPhoto: true }).errors.parish, 'parish is required');
   });
 
+  test('organization is optional and must be one of the listed movements', () => {
+    assert.equal(validateRegistration(event, validBody(), { hasPhoto: true }).values.organization, null);
+    const ok = validateRegistration(event, validBody({ organization: 'Jesus Youth' }), { hasPhoto: true });
+    assert.deepEqual(ok.errors, {});
+    assert.equal(ok.values.organization, 'Jesus Youth');
+    assert.ok(validateRegistration(event, validBody({ organization: 'Something else' }), { hasPhoto: true }).errors.organization);
+  });
+
   test('accommodation, when switched back on in settings, drops details unless requested', () => {
     const withAccommodation = { ...event, form_config: JSON.stringify({ accommodation_required: 'optional', arrival_at: 'optional' }) };
     const { values } = validateRegistration(withAccommodation, validBody({ arrival_at: '2099-10-10T08:00' }));

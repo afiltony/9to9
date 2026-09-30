@@ -7,6 +7,7 @@ import { FORANES } from './parishes.js';
 
 export const GENDERS = ['Male', 'Female'];
 export const FOOD_PREFERENCES = ['Vegetarian', 'Non-vegetarian', 'Other'];
+export const ORGANIZATIONS = ['MAAC', 'Yuvadeepti SMYM', 'CSM', 'Jesus Youth'];
 export const COUNTRY_CODES = ['+91', '+971', '+974', '+966', '+965', '+968', '+973', '+44', '+1', '+61', '+64', '+49', '+39'];
 
 export const SECTIONS = [
@@ -50,7 +51,8 @@ export const FIELDS = [
   { name: 'forane', label: 'Forane', section: 'church', mode: 'required', type: 'forane', max: 100, options: FORANES },
   { name: 'parish', label: 'Parish', section: 'church', mode: 'required', type: 'parish', max: 255 },
   text('diocese', 'Diocese', 'church', 'hidden', { max: 255 }),
-  text('organization', 'Organization / Movement', 'church', 'hidden', { max: 255 }),
+  // optional: people who belong to none of the movements leave it blank
+  { name: 'organization', label: 'Organization you belong to', section: 'church', mode: 'optional', type: 'select', max: 255, options: ORGANIZATIONS },
   text('institution', 'School / College / Institution', 'church', 'hidden', { max: 255 }),
   text('youth_group', 'Youth group', 'church', 'hidden', { max: 255 }),
   text('coordinator_name', 'Coordinator name', 'church', 'hidden', { max: 200 }),
