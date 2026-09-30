@@ -58,12 +58,13 @@ export const FIELDS = [
   text('coordinator_name', 'Coordinator name', 'church', 'hidden', { max: 200 }),
   text('coordinator_mobile', 'Coordinator mobile', 'church', 'hidden', { type: 'tel', max: 20 }),
 
-  text('emergency_name', 'Contact name', 'emergency', 'required', { max: 200, latin: true }),
-  text('emergency_relationship', 'Relationship', 'emergency', 'required'),
-  text('emergency_mobile', 'Mobile', 'emergency', 'required', { type: 'tel', max: 20 }),
-  text('emergency_alternate_mobile', 'Alternate mobile', 'emergency', 'optional', { type: 'tel', max: 20 }),
-  text('emergency_email', 'Email', 'emergency', 'optional', { type: 'email', max: 255 }),
-  { name: 'emergency_address', label: 'Address', section: 'emergency', mode: 'optional', type: 'textarea', max: 500 },
+  // no longer asked; kept so admins can switch it back on in Settings
+  text('emergency_name', 'Contact name', 'emergency', 'hidden', { max: 200, latin: true }),
+  text('emergency_relationship', 'Relationship', 'emergency', 'hidden'),
+  text('emergency_mobile', 'Mobile', 'emergency', 'hidden', { type: 'tel', max: 20 }),
+  text('emergency_alternate_mobile', 'Alternate mobile', 'emergency', 'hidden', { type: 'tel', max: 20 }),
+  text('emergency_email', 'Email', 'emergency', 'hidden', { type: 'email', max: 255 }),
+  { name: 'emergency_address', label: 'Address', section: 'emergency', mode: 'hidden', type: 'textarea', max: 500 },
 
   { name: 'accommodation_required', label: 'I need accommodation', section: 'requirements', mode: 'hidden', type: 'checkbox' },
   { name: 'arrival_at', label: 'Arrival (date & time)', section: 'requirements', mode: 'hidden', type: 'datetime-local', showIf: 'accommodation_required' },

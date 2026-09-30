@@ -167,11 +167,11 @@ function drawIdFront(doc, event, p, x, y) {
   const org = p.organization || p.institution || p.youth_group;
   const details = [
     ['Place', [p.locality, p.district].filter(Boolean).join(', ')],
-    // parish and organization are optional form fields: only print them when collected
+    // parish, organization and emergency contact are optional form fields: only print them when collected
     p.parish && ['Parish', p.parish],
     org && ['Organization', org],
-    ['Emergency contact', [p.emergency_name, p.emergency_relationship && `(${p.emergency_relationship})`].filter(Boolean).join(' ')],
-    ['Emergency phone', [p.emergency_mobile, p.emergency_alternate_mobile].filter(Boolean).join(' / ')],
+    p.emergency_name && ['Emergency contact', [p.emergency_name, p.emergency_relationship && `(${p.emergency_relationship})`].filter(Boolean).join(' ')],
+    p.emergency_mobile && ['Emergency phone', [p.emergency_mobile, p.emergency_alternate_mobile].filter(Boolean).join(' / ')],
   ].filter(Boolean);
   const colW = (W - pad * 2 - 12) / 2;
   details.forEach(([label, value], i) => {

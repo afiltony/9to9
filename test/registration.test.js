@@ -32,7 +32,7 @@ describe('validation', () => {
 
   test('reports missing required fields and consents', () => {
     const { errors } = validateRegistration(event, {});
-    for (const f of ['first_name', 'mobile', 'date_of_birth', 'emergency_mobile', 'consent_information', 'consent_rules']) {
+    for (const f of ['first_name', 'mobile', 'date_of_birth', 'consent_information', 'consent_rules']) {
       assert.ok(errors[f], `expected an error for ${f}`);
     }
     assert.ok(!errors.consent_media, 'media consent is optional');
@@ -47,10 +47,9 @@ describe('validation', () => {
 
   test('Indian numbers typed with a leading 0 or 91 are accepted as 10 digits', () => {
     for (const typed of ['09496935651', '919496935651', '+91 94969 35651', '94969-35651']) {
-      const { values, errors } = validateRegistration(event, validBody({ mobile: typed, emergency_mobile: typed }));
+      const { values, errors } = validateRegistration(event, validBody({ mobile: typed }));
       assert.equal(errors.mobile, undefined, typed);
       assert.equal(values.mobile, '9496935651', typed);
-      assert.equal(values.emergency_mobile, '9496935651', typed);
     }
     assert.ok(validateRegistration(event, validBody({ mobile: '949693565' })).errors.mobile, '9 digits is refused');
   });
@@ -111,7 +110,7 @@ describe('registration', () => {
     assert.notEqual(p1.qr_token, p1.access_token);
     assert.equal((await one('SELECT registration_count FROM activity_slots WHERE id = ?', [adoration.id])).registration_count, 1);
     assert.equal((await query('SELECT * FROM participant_slots WHERE participant_id = ?', [p1.id])).length, 2);
-    assert.ok(await one('SELECT * FROM emergency_contacts WHERE participant_id = ?', [p1.id]));
+    assert.equal(await one('SELECT * FROM emergency_contacts WHERE participant_id = ?', [p1.id]), null, 'emergency contact is no longer asked');
   });
 
   test('registration numbers are never reused after a cancellation', async () => {
