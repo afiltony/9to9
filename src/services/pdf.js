@@ -5,6 +5,7 @@ import QRCode from 'qrcode';
 import { config, ROOT } from '../config.js';
 import { eventContent } from '../content.js';
 import { dayLabel, displayName, fullName, shortDate, timeRange } from '../lib/format.js';
+import { PARISHES_BY_FORANE } from '../parishes.js';
 
 const MM = 72 / 25.4;
 // the participant card: 10 cm wide × 12.5 cm high
@@ -25,6 +26,9 @@ const FONT_FILES = {
   Body: 'roboto/files/roboto-latin-400-normal.woff',
   BodyMed: 'roboto/files/roboto-latin-500-normal.woff',
   BodyBold: 'roboto/files/roboto-latin-700-normal.woff',
+  BodyItalic: 'roboto/files/roboto-latin-400-italic.woff',
+  Title: 'poppins/files/poppins-latin-900-normal.woff',
+  TitleBold: 'poppins/files/poppins-latin-700-normal.woff',
 };
 const fontCache = {};
 
@@ -85,42 +89,69 @@ function drawQr(doc, text, x, y, size) {
   doc.fill('#000000').restore();
 }
 
-function drawPhoto(doc, p, x, y, w, h, accent) {
-  doc.save().roundedRect(x, y, w, h, 5).clip();
+/** Round photo centred on (cx, cy): a coloured disc with the photo set inside a white ring. */
+function drawPhoto(doc, p, cx, cy, r, disc) {
+  doc.circle(cx, cy, r).fill(disc);
+  const pr = r - 5;
+  doc.circle(cx, cy, pr + 1.8).fill('#ffffff');
+  doc.save().circle(cx, cy, pr).clip();
   const file = storageFile(p.profile_photo_path);
   let drawn = false;
   if (file) {
     try {
-      doc.image(file, x, y, { cover: [w, h], align: 'center', valign: 'center' });
+      doc.image(file, cx - pr, cy - pr, { cover: [pr * 2, pr * 2], align: 'center', valign: 'center' });
       drawn = true;
     } catch {
       // unreadable image: placeholder below
     }
   }
   if (!drawn) {
-    doc.rect(x, y, w, h).fill('#eceef4');
-    doc.fillColor(MUTED).font('Body').fontSize(6.5).text('PHOTO', x, y + h / 2 - 4, { width: w, align: 'center' });
+    doc.rect(cx - pr, cy - pr, pr * 2, pr * 2).fill('#eceef4');
+    doc.fillColor(MUTED).font('Body').fontSize(6.5).text('PHOTO', cx - pr, cy - 4, { width: pr * 2, align: 'center' });
   }
   doc.restore();
-  doc.roundedRect(x, y, w, h, 5).lineWidth(1.2).stroke(accent);
+}
+
+// the event wordmark printed at the top of the card front
+const WORDMARK = path.join(ROOT, 'public/img/logo-wordmark.jpg');
+
+/** Pale quarter-circle pattern behind the card front, as on the event's printed badges. */
+function drawPattern(doc, x, y, W, H, tint) {
+  const cell = W / 4;
+  doc.save().rect(x, y, W, H).clip();
+  for (let r = 0; r * cell < H; r++) {
+    for (let c = 0; c < 4; c++) {
+      const cx = x + c * cell;
+      const cy = y + r * cell;
+      // the arc's centre sits on one corner of the cell, rotating round the grid
+      const k = (c + r * 3) % 4;
+      const ox = cx + (k === 1 || k === 2 ? cell : 0);
+      const oy = cy + (k >= 2 ? cell : 0);
+      doc.save().rect(cx + 1.5, cy + 1.5, cell - 3, cell - 3).clip();
+      doc.circle(ox, oy, cell - 3).fill(tint);
+      doc.restore();
+    }
+  }
+  doc.restore();
+}
+
+const ARCHDIOCESE = 'Archdiocese of Changanacherry';
+
+/** Diocese as typed, or the Archdiocese when the parish is one of its own. */
+function dioceseOf(p) {
+  if (p.diocese) return p.diocese;
+  return PARISHES_BY_FORANE[p.forane]?.includes(p.parish) ? ARCHDIOCESE : null;
+}
+
+/** Writes one line of text, shrinking it down to `min` points so it fits the width. */
+function fitLine(doc, text, x, y, width, font, size, min, opts = {}) {
+  doc.font(font).fontSize(size);
+  while (size > min && doc.widthOfString(text, opts) > width) doc.fontSize(size -= 0.25);
+  doc.text(text, x, y, { width, lineBreak: false, ellipsis: true, ...opts });
+  return size;
 }
 
 // ---------------------------------------------------------------- ID card (100 × 125 mm portrait)
-
-function cardHeader(doc, event, x, y, W, h) {
-  const { primary, secondary } = colors(event);
-  doc.rect(x, y, W, h).fill(primary);
-  doc.rect(x, y + h, W, 3).fill(secondary);
-  const logo = logoFile(event);
-  let tx = x;
-  let tw = W;
-  if (logo) {
-    try { doc.image(logo, x + 12, y + 7, { fit: [42, h - 14], align: 'center', valign: 'center' }); tx = x + 58; tw = W - 70; } catch { /* no logo */ }
-  }
-  doc.fillColor('#ffffff').font('Display').fontSize(23).text('9 to 9 meet', tx, y + 9, { width: tw, align: 'center', lineBreak: false });
-  doc.fillColor(secondary).font('HeadingMed').fontSize(9.5)
-    .text('24 HOUR GOD EXPERIENCE', tx, y + 39, { width: tw, align: 'center', characterSpacing: 0.9, lineBreak: false });
-}
 
 function cardFooter(doc, event, x, y, W, H, text) {
   const { primary } = colors(event);
@@ -129,57 +160,58 @@ function cardFooter(doc, event, x, y, W, H, text) {
     .text(text, x + 8, y + H - 14, { width: W - 16, align: 'center', characterSpacing: 0.4, lineBreak: false, ellipsis: true });
 }
 
-// Front: photo, name, registration number and a small QR code, then place and emergency details.
+// Front, laid out like the event's printed badges: wordmark, title, round photo, then the
+// name at the bottom left with parish, diocese and organization. The QR code is on the back.
 function drawIdFront(doc, event, p, x, y) {
-  const { primary, secondary } = colors(event);
+  const { primary } = colors(event);
   const W = CARD_W;
   const H = CARD_H;
   const pad = 16;
   doc.save();
   doc.rect(x, y, W, H).clip();
   doc.rect(x, y, W, H).fill('#ffffff');
-  cardHeader(doc, event, x, y, W, 58);
+  drawPattern(doc, x, y, W, H - 20, '#fcf6f6');
 
-  const top = y + 74;
-  const photoW = 116;
-  const photoH = 145;
-  drawPhoto(doc, p, x + pad, top, photoW, photoH, secondary);
+  // wordmark and title
+  const logoW = 132;
+  try { doc.image(WORDMARK, x + (W - logoW) / 2, y + 12, { width: logoW }); } catch { /* no wordmark */ }
+  const theme = eventContent(event).hero_theme;
+  if (theme) doc.fillColor(INK).font('TitleBold').fontSize(6.5).text(theme.toUpperCase(), x, y + 57, { width: W, align: 'center', characterSpacing: 0.8, lineBreak: false });
+  doc.fillColor(primary).font('Title').fontSize(29).text('24 HOUR', x, y + 62, { width: W, align: 'center', lineBreak: false });
+  doc.fillColor(INK).font('Title').fontSize(19).text('GOD EXPERIENCE', x, y + 93, { width: W, align: 'center', lineBreak: false });
 
-  // right of the photo: name (shrinks to fit three lines), registration number, small QR code
-  const cx = x + pad + photoW + 12;
-  const cw = x + W - pad - cx;
-  const name = displayName(p).toUpperCase();
-  let size = 17;
-  doc.font('Heading').fontSize(size);
-  while (size > 9 && doc.heightOfString(name, { width: cw }) > 54) doc.fontSize(size -= 0.5);
-  doc.fillColor(INK).text(name, cx, top, { width: cw, height: 56, ellipsis: true });
-  doc.fillColor(primary).font('BodyBold').fontSize(12)
-    .text(p.registration_number, cx, top + 60, { width: cw, characterSpacing: 0.6, lineBreak: false });
-  const qr = 58;
-  drawQr(doc, checkinUrl(p), cx - 3, top + photoH - qr, qr);
-  doc.fillColor(MUTED).font('BodyMed').fontSize(6.5)
-    .text('SCAN AT\nCHECK-IN AND\nEACH ACTIVITY', cx + qr + 4, top + photoH - 30, { width: cw - qr - 4, characterSpacing: 0.3, lineGap: 1 });
+  // round photo
+  drawPhoto(doc, p, x + W / 2, y + 170, 48, primary);
 
-  // details in two columns
-  let cy = top + photoH + 12;
-  doc.moveTo(x + pad, cy).lineTo(x + W - pad, cy).lineWidth(0.6).stroke(LINE);
-  cy += 8;
+  // name: first word large, the rest below it, both shrinking to fit the width
+  const [first, ...rest] = displayName(p).toUpperCase().split(/\s+/);
+  let ny = y + 222;
+  doc.fillColor(primary);
+  fitLine(doc, first, x + pad, ny, W - pad * 2, 'Title', 24, 14);
+  ny += 29;
+  if (rest.length) {
+    doc.fillColor(INK);
+    fitLine(doc, rest.join(' '), x + pad, ny, W - pad * 2, 'TitleBold', 14, 9);
+    ny += 18;
+  }
+  doc.fillColor(MUTED).font('BodyItalic').fontSize(8.5).text(`Reg. No. ${p.registration_number}`, x + pad, ny, { lineBreak: false });
+
+  // parish, diocese and organization are optional: only print what was collected
   const org = p.organization || p.institution || p.youth_group;
   const details = [
-    ['Place', [p.locality, p.district].filter(Boolean).join(', ')],
-    // parish, organization and emergency contact are optional form fields: only print them when collected
     p.parish && ['Parish', p.parish],
+    dioceseOf(p) && ['Diocese', dioceseOf(p)],
     org && ['Organization', org],
-    p.emergency_name && ['Emergency contact', [p.emergency_name, p.emergency_relationship && `(${p.emergency_relationship})`].filter(Boolean).join(' ')],
-    p.emergency_mobile && ['Emergency phone', [p.emergency_mobile, p.emergency_alternate_mobile].filter(Boolean).join(' / ')],
   ].filter(Boolean);
-  const colW = (W - pad * 2 - 12) / 2;
-  details.forEach(([label, value], i) => {
-    const dx = x + pad + (i % 2) * (colW + 12);
-    const dy = cy + Math.floor(i / 2) * 31;
-    doc.fillColor(MUTED).font('BodyMed').fontSize(6.5).text(label.toUpperCase(), dx, dy, { width: colW, characterSpacing: 0.4, lineBreak: false });
-    doc.fillColor(INK).font('BodyBold').fontSize(9.5).text(value || '—', dx, dy + 8, { width: colW, height: 23, ellipsis: true });
-  });
+  const labelW = 66;
+  let dy = y + H - 20 - 7 - details.length * 11.5;
+  doc.moveTo(x + pad, dy - 5).lineTo(x + W - pad, dy - 5).lineWidth(0.8).stroke(primary);
+  for (const [label, value] of details) {
+    doc.fillColor(primary).font('TitleBold').fontSize(6.5).text(label.toUpperCase(), x + pad, dy + 1.2, { width: labelW, characterSpacing: 0.6, lineBreak: false });
+    doc.fillColor(INK);
+    fitLine(doc, value, x + pad + labelW, dy, W - pad * 2 - labelW, 'BodyBold', 8.5, 6.5);
+    dy += 11.5;
+  }
 
   cardFooter(doc, event, x, y, W, H,
     `${shortDate(event.start_at).toUpperCase()} 9 AM – ${shortDate(event.end_at).toUpperCase()} 9 AM${event.venue ? ` · ${event.venue.toUpperCase()}` : ''}`);
@@ -203,7 +235,8 @@ function drawIdBack(doc, event, p, bookings, x, y) {
     .text(`${fullName(p).toUpperCase()} · ${p.registration_number}`, x + pad, y + 28, { width: W - pad * 2, lineBreak: false, ellipsis: true });
 
   const top = y + 56;
-  const bottom = y + H - 20 - 20;
+  const qr = 64;
+  const bottom = y + H - 20 - qr - 14;
   const timeW = 100;
   const actX = x + pad + timeW;
   const actW = x + W - pad - actX;
@@ -247,8 +280,13 @@ function drawIdBack(doc, event, p, bookings, x, y) {
     layout(s, true);
   }
 
+  // check-in QR code at the bottom, next to its instructions
+  const qy = y + H - 20 - qr - 6;
+  doc.moveTo(x + pad, qy - 4).lineTo(x + W - pad, qy - 4).lineWidth(0.6).stroke(LINE);
+  drawQr(doc, checkinUrl(p), x + W - pad - qr + 3, qy, qr);
+  doc.fillColor(primary).font('TitleBold').fontSize(9).text('SCAN AT CHECK-IN', x + pad, qy + 18, { width: W - pad * 2 - qr, characterSpacing: 0.5, lineBreak: false });
   doc.fillColor(MUTED).font('Body').fontSize(7.5)
-    .text('Show the QR code on the front of this card at each activity.', x + pad, y + H - 20 - 14, { width: W - pad * 2, align: 'center', lineBreak: false });
+    .text('Show this QR code at check-in and at each activity.', x + pad, qy + 32, { width: W - pad * 2 - qr - 8 });
   cardFooter(doc, event, x, y, W, H, event.contact_phone ? `HELP DESK: ${event.contact_phone}` : 'EVENT HELP DESK');
   doc.restore();
 }
