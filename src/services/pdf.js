@@ -183,18 +183,18 @@ function drawIdFront(doc, event, p, x, y) {
   // round photo
   drawPhoto(doc, p, x + W / 2, y + 145, 43, primary);
 
-  // name: first word large, the rest below it, both shrinking to fit the width
+  // name, centred under the photo: first word large, the rest below it, both shrinking to fit the width
   const [first, ...rest] = displayName(p).toUpperCase().split(/\s+/);
   let ny = y + 192;
   doc.fillColor(primary);
-  fitLine(doc, first, x + pad, ny, W - pad * 2, 'Title', 22, 14);
+  fitLine(doc, first, x + pad, ny, W - pad * 2, 'Title', 22, 14, { align: 'center' });
   ny += 26;
   if (rest.length) {
     doc.fillColor(INK);
-    fitLine(doc, rest.join(' '), x + pad, ny, W - pad * 2, 'TitleBold', 13, 9);
+    fitLine(doc, rest.join(' '), x + pad, ny, W - pad * 2, 'TitleBold', 13, 9, { align: 'center' });
     ny += 17;
   }
-  doc.fillColor(MUTED).font('BodyItalic').fontSize(8.5).text(`Reg. No. ${p.registration_number}`, x + pad, ny, { lineBreak: false });
+  doc.fillColor(MUTED).font('BodyItalic').fontSize(8.5).text(`Reg. No. ${p.registration_number}`, x + pad, ny, { width: W - pad * 2, align: 'center', lineBreak: false });
 
   // organizers' logo strip just above the footer
   const stripH = 40;
