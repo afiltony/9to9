@@ -16,7 +16,7 @@ export const DEFAULT_CONTENT = {
     { title: 'Community', text: 'Life of St. Carlo & Eucharistic Miracles, Blood Donation, and a day and night together with young people.' },
     { title: 'Experience', text: 'VR Experience Show, Rosary Making Workshop and the Selfie Point.' },
   ],
-  organizers: 'Organized by: MAAC | Yuvadeepti SMYM | CSM | Jesus Youth',
+  organizers: 'Organized by Media Village, Media Apostolate, Archeparchy of Changanassery | In association with Yuvadeepti SMYM, Jesus Youth and CSM (Catholic Students Movement)',
   card_instruction: 'Please carry this card throughout the event.',
   privacy_text: `We collect the details on the registration form only to organize the event: to confirm your registration, book your activity places, print your participant cards, contact you or your emergency contact, and plan food and accommodation.
 

@@ -17,7 +17,7 @@
           <% if (event.venue) { %><dt>Where</dt><dd><%= event.venue %></dd><% } %>
           <% if (event.contact_phone) { %><dt>Registration help</dt><dd><a href="tel:<%= event.contact_phone.replace(/\s/g, '') %>"><%= event.contact_phone %></a></dd><% } %>
         </dl>
-        <% if (content.organizers) { %><p class="muted"><%= content.organizers %></p><% } %>
+        <%- include('partials/organizers') %>
         <div class="row" style="margin-top:20px">
           <% if (state.open) { %><a class="btn" href="/register">Register now</a><% } %>
           <a class="btn outline" href="/schedule">View schedule</a>

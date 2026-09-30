@@ -114,6 +114,9 @@ function drawPhoto(doc, p, cx, cy, r, disc) {
 
 // the event wordmark printed at the top of the card front
 const WORDMARK = path.join(ROOT, 'public/img/logo-wordmark.jpg');
+// the organizers' logo strip (916 × 162 px), printed above the footer of the card front
+const ORGANIZERS = path.join(ROOT, 'public/img/organizers.jpg');
+const ORGANIZERS_RATIO = 916 / 162;
 
 /** Pale quarter-circle pattern behind the card front, as on the event's printed badges. */
 function drawPattern(doc, x, y, W, H, tint) {
@@ -159,7 +162,8 @@ function cardFooter(doc, event, x, y, W, H, text) {
 }
 
 // Front, laid out like the event's printed badges: wordmark, title, round photo, then the
-// name at the bottom left with parish, diocese and organization. The QR code is on the back.
+// name at the bottom left with parish, diocese and organization, and the organizers' logos.
+// The QR code is on the back.
 function drawIdFront(doc, event, p, x, y) {
   const { primary } = colors(event);
   const W = CARD_W;
@@ -171,28 +175,33 @@ function drawIdFront(doc, event, p, x, y) {
   drawPattern(doc, x, y, W, H - 20, '#fcf6f6');
 
   // wordmark and title
-  const logoW = 132;
-  try { doc.image(WORDMARK, x + (W - logoW) / 2, y + 12, { width: logoW }); } catch { /* no wordmark */ }
-  const theme = eventContent(event).hero_theme;
-  if (theme) doc.fillColor(INK).font('TitleBold').fontSize(6.5).text(theme.toUpperCase(), x, y + 57, { width: W, align: 'center', characterSpacing: 0.8, lineBreak: false });
-  doc.fillColor(primary).font('Title').fontSize(29).text('24 HOUR', x, y + 62, { width: W, align: 'center', lineBreak: false });
-  doc.fillColor(INK).font('Title').fontSize(19).text('GOD EXPERIENCE', x, y + 93, { width: W, align: 'center', lineBreak: false });
+  const logoW = 118;
+  try { doc.image(WORDMARK, x + (W - logoW) / 2, y + 10, { width: logoW }); } catch { /* no wordmark */ }
+  doc.fillColor(primary).font('Title').fontSize(24).text('24 HOUR', x, y + 46, { width: W, align: 'center', lineBreak: false });
+  doc.fillColor(INK).font('Title').fontSize(16).text('GOD EXPERIENCE', x, y + 72, { width: W, align: 'center', lineBreak: false });
 
   // round photo
-  drawPhoto(doc, p, x + W / 2, y + 170, 48, primary);
+  drawPhoto(doc, p, x + W / 2, y + 145, 43, primary);
 
   // name: first word large, the rest below it, both shrinking to fit the width
   const [first, ...rest] = displayName(p).toUpperCase().split(/\s+/);
-  let ny = y + 222;
+  let ny = y + 192;
   doc.fillColor(primary);
-  fitLine(doc, first, x + pad, ny, W - pad * 2, 'Title', 24, 14);
-  ny += 29;
+  fitLine(doc, first, x + pad, ny, W - pad * 2, 'Title', 22, 14);
+  ny += 26;
   if (rest.length) {
     doc.fillColor(INK);
-    fitLine(doc, rest.join(' '), x + pad, ny, W - pad * 2, 'TitleBold', 14, 9);
-    ny += 18;
+    fitLine(doc, rest.join(' '), x + pad, ny, W - pad * 2, 'TitleBold', 13, 9);
+    ny += 17;
   }
   doc.fillColor(MUTED).font('BodyItalic').fontSize(8.5).text(`Reg. No. ${p.registration_number}`, x + pad, ny, { lineBreak: false });
+
+  // organizers' logo strip just above the footer
+  const stripH = 40;
+  const stripW = stripH * ORGANIZERS_RATIO;
+  const sy = y + H - 20 - stripH - 3;
+  doc.rect(x, sy - 3, W, stripH + 3).fill('#ffffff');
+  try { doc.image(ORGANIZERS, x + (W - stripW) / 2, sy, { width: stripW, height: stripH }); } catch { /* no strip */ }
 
   // parish, diocese and organization are optional: only print what was collected
   const org = p.organization || p.institution || p.youth_group;
@@ -202,13 +211,13 @@ function drawIdFront(doc, event, p, x, y) {
     org && ['Organization', org],
   ].filter(Boolean);
   const labelW = 66;
-  let dy = y + H - 20 - 7 - details.length * 11.5;
+  let dy = sy - 6 - details.length * 11;
   doc.moveTo(x + pad, dy - 5).lineTo(x + W - pad, dy - 5).lineWidth(0.8).stroke(primary);
   for (const [label, value] of details) {
     doc.fillColor(primary).font('TitleBold').fontSize(6.5).text(label.toUpperCase(), x + pad, dy + 1.2, { width: labelW, characterSpacing: 0.6, lineBreak: false });
     doc.fillColor(INK);
     fitLine(doc, value, x + pad + labelW, dy, W - pad * 2 - labelW, 'BodyBold', 8.5, 6.5);
-    dy += 11.5;
+    dy += 11;
   }
 
   cardFooter(doc, event, x, y, W, H,

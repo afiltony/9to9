@@ -647,6 +647,10 @@ h2, h3 { font-weight: 700; }
 @media (min-width: 900px) { .footer-grid { grid-template-columns: 1.3fr 1fr 1fr 1.1fr; } }
 .footer-bottom { border-top-color: rgb(255 255 255 / 15%); color: rgb(255 255 255 / 75%); }
 .footer-bottom a { text-decoration: underline; }
+/* organizers' logo strip: always on white, as supplied */
+.organizers-strip { background: #fff; border-radius: 12px; padding: 10px 14px; }
+.organizers-strip img { display: block; width: 100%; max-width: 760px; height: auto; margin: 0 auto; }
+.site-footer .organizers-strip { margin-top: 32px; }
 
 /* admin */
 .sidebar .brand-mark { background: #fff; color: var(--primary); }

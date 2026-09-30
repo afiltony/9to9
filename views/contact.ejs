@@ -35,7 +35,7 @@
         <p class="muted small" style="margin:0">Call the number above with your name and mobile number. Your card can still be collected at reception.</p>
       </div>
     </div>
-    <% if (content.organizers) { %><p class="muted center" style="margin-top:32px"><%= content.organizers %></p><% } %>
+    <div style="margin-top:32px"><%- include('partials/organizers') %></div>
   </div>
 </div>
 <%- include('partials/foot') %>

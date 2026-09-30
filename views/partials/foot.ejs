@@ -37,7 +37,7 @@
         <p>Register online, book your activity slots and collect your card at reception.</p>
       </div>
     </div>
-    <% if (content && content.organizers) { %><p class="small" style="margin:28px 0 0;color:rgb(255 255 255 / 75%)"><%= content.organizers %></p><% } %>
+    <%- include('organizers') %>
     <div class="footer-bottom">
       <span>Copyright © <%= event ? event.start_at.slice(0, 4) : '' %> 9 TO 9 Meet | <a href="/privacy">Privacy Policy</a> | <a href="/terms">Terms</a></span>
       <a href="/admin/login">Staff login</a>
