@@ -2,6 +2,8 @@
 // https://www.archdiocesechanganacherry.org/welcome/forane_list (fetched 29 Sep 2026).
 // Parish names are "Church, Place" because many churches share a name.
 
+export const ARCHDIOCESE = 'Archdiocese of Changanacherry';
+
 export const PARISHES_BY_FORANE = {
   "Alappuzha": [
     "Immaculate Heart Church, Kaithavana",

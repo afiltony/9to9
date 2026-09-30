@@ -55,15 +55,17 @@
              for (const f of section.fields) {
                const v = values[f.name] ?? (hasValues ? '' : (f.default ?? ''));
                const err = errors[f.name];
-               const id = 'f_' + f.name; %>
+               const id = 'f_' + f.name;
+               // typed only by people from outside the Archdiocese (the diocese)
+               const outsideOnly = f.outsideOnly && hasForane; %>
             <% if (f === pair[0]) { %>
               <% if (hasForane) { %>
                 <div class="field"><label class="check"><input type="checkbox" name="outside_archdiocese" value="on" <%= outside ? 'checked' : '' %> data-outside>
-                  <span>I am from outside the Archdiocese of Changanacherry <span class="help" style="display:block">Tick to type your forane and parish yourself.</span></span></label></div>
+                  <span>I am from outside the Archdiocese of Changanacherry <span class="help" style="display:block">Tick to type your forane, parish and diocese yourself.</span></span></label></div>
               <% } %>
               <div class="parish-pair<%= outside ? ' outside' : '' %>" data-parish-pair>
             <% } %>
-            <div class="field<%= err ? ' has-error' : '' %>" data-field="<%= f.name %>" data-label="<%= f.label %>"<% if (f.showIf) { %> data-show-if="<%= f.showIf %>"<% } %>>
+            <div class="field<%= err ? ' has-error' : '' %>" data-field="<%= f.name %>" data-label="<%= f.label %>"<% if (f.showIf) { %> data-show-if="<%= f.showIf %>"<% } %><% if (outsideOnly) { %> data-outside-only<%= outside ? '' : ' hidden' %><% } %>>
             <% if (f.type === 'checkbox') { %>
               <span class="label" id="<%= id %>_l"><%= f.label.replace(/^I need /, 'Do you need ') %>?</span>
               <div class="choice-group" role="radiogroup" aria-labelledby="<%= id %>_l">
@@ -86,8 +88,11 @@
                 <input type="file" name="profile_photo" id="<%= id %>" accept="image/jpeg,image/png,image/*" data-max-bytes="<%= maxPhotoBytes %>" data-max-upload-mb="<%= maxUploadMb %>" <%= f.required && !keptPhoto ? 'required' : '' %><%= keptPhoto ? ' data-kept=1' : '' %> aria-describedby="<%= id %>_l">
               </label>
             <% } else { %>
-              <label for="<%= id %>"><%= f.label %><% if (f.required) { %> <span class="req">*</span><% } %></label>
-              <% if (f.type === 'forane') { %>
+              <label for="<%= id %>"><%= f.label %><% if (f.required || outsideOnly) { %> <span class="req">*</span><% } %></label>
+              <% if (outsideOnly) { %>
+                <input type="text" name="<%= f.name %>" id="<%= id %>" value="<%= outside ? v : '' %>" maxlength="<%= f.max %>" placeholder="Your diocese"
+                       <%= outside ? 'required' : 'disabled' %>>
+              <% } else if (f.type === 'forane') { %>
                 <%# the forane and parish dropdowns swap for text boxes when "outside" is ticked.
                     Only one of each pair is enabled, so only one is submitted. %>
                 <select name="forane" id="<%= id %>" <%= f.required ? 'required' : '' %> <%= outside ? 'hidden disabled' : '' %> data-forane-select>

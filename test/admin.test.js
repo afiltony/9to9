@@ -82,6 +82,7 @@ describe('public pages', () => {
     assert.ok(!html.includes('name="last_name"') && !html.includes('name="accommodation_required"'));
     assert.match(html, /<select name="forane"[^>]*required/);
     assert.match(html, /name="outside_archdiocese"/);
+    assert.match(html, /data-outside-only hidden>[\s\S]*?<input type="text" name="diocese"[^>]*disabled/, 'diocese box waits for "outside"');
     assert.match(html, /<optgroup label="Kottayam"><option >Assumption Church, Eravinalloor<\/option>/);
     for (const step of ['Personal', 'Contact', 'Parish', 'Activities', 'Confirm']) {
       assert.match(html, new RegExp(`<span class="t">${step}</span>`));

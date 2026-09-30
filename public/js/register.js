@@ -35,7 +35,7 @@
   // ---------------------------------------------------------------- forane → parish
   // The parish list arrives grouped by forane. Choosing a forane narrows it to that forane's
   // parishes, and picking a parish first fills in its forane. Ticking "outside the Archdiocese"
-  // swaps both dropdowns for text boxes.
+  // swaps both dropdowns for text boxes and shows the diocese box.
   var outsideBox = form.querySelector('[data-outside]');
   var parishPair = form.querySelector('[data-parish-pair]');
   var foraneSel = form.querySelector('[data-forane-select]');
@@ -59,6 +59,11 @@
     swap(foraneSel, foraneOther, outside);
     swap(parishSel, parishOther, outside);
     parishPair.classList.toggle('outside', outside);
+    form.querySelectorAll('[data-outside-only]').forEach(function (w) {
+      var input = w.querySelector('input');
+      w.hidden = input.disabled = !outside;
+      input.required = outside;
+    });
     if (outside) return;
     var list = parishGroups[foraneSel.value];
     var keep = parishSel.value;

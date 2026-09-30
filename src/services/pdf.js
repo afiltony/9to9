@@ -5,7 +5,7 @@ import QRCode from 'qrcode';
 import { config, ROOT } from '../config.js';
 import { eventContent } from '../content.js';
 import { dayLabel, displayName, fullName, shortDate, timeRange } from '../lib/format.js';
-import { PARISHES_BY_FORANE } from '../parishes.js';
+import { ARCHDIOCESE, PARISHES_BY_FORANE } from '../parishes.js';
 
 const MM = 72 / 25.4;
 // the participant card: 10 cm wide × 12.5 cm high
@@ -134,8 +134,6 @@ function drawPattern(doc, x, y, W, H, tint) {
   }
   doc.restore();
 }
-
-const ARCHDIOCESE = 'Archdiocese of Changanacherry';
 
 /** Diocese as typed, or the Archdiocese when the parish is one of its own. */
 function dioceseOf(p) {

@@ -69,13 +69,22 @@ describe('validation', () => {
     assert.equal(ok.values.forane, 'Changanacherry');
     assert.ok(validateRegistration(event, validBody({ forane: 'Kottayam' }), { hasPhoto: true }).errors.parish, 'parish from another forane');
     assert.ok(validateRegistration(event, validBody({ forane: 'Nowhere' }), { hasPhoto: true }).errors.forane);
-    const outside = { outside_archdiocese: 'on', forane: 'Pala', parish: 'St. Thomas Cathedral, Pala' };
+    const outside = { outside_archdiocese: 'on', forane: 'Pala', parish: 'St. Thomas Cathedral, Pala', diocese: 'Diocese of Palai' };
     const other = validateRegistration(event, validBody(outside), { hasPhoto: true });
     assert.deepEqual(other.errors, {});
     assert.equal(other.values.forane, 'Pala');
     assert.equal(other.values.parish, 'St. Thomas Cathedral, Pala');
     assert.ok(validateRegistration(event, validBody({ ...outside, forane: '' }), { hasPhoto: true }).errors.forane, 'typed forane is still required');
     assert.ok(validateRegistration(event, validBody({ parish: '' }), { hasPhoto: true }).errors.parish, 'parish is required');
+  });
+
+  test('diocese is the Archdiocese unless typed by someone from outside it', () => {
+    assert.equal(validateRegistration(event, validBody({ diocese: 'Ignored' }), { hasPhoto: true }).values.diocese, 'Archdiocese of Changanacherry');
+    const outside = { outside_archdiocese: 'on', forane: 'Pala', parish: 'St. Thomas Cathedral, Pala' };
+    assert.ok(validateRegistration(event, validBody(outside), { hasPhoto: true }).errors.diocese, 'typed diocese is required');
+    const other = validateRegistration(event, validBody({ ...outside, diocese: 'Diocese of Palai' }), { hasPhoto: true });
+    assert.deepEqual(other.errors, {});
+    assert.equal(other.values.diocese, 'Diocese of Palai');
   });
 
   test('organization is optional and must be one of the listed movements', () => {

@@ -3,7 +3,7 @@ import { config } from '../config.js';
 import { one, query, tx } from '../db.js';
 import { CONSENTS, LATIN_NAME_PATTERN, formFields } from '../fields.js';
 import { nowLocal, timeRange } from '../lib/format.js';
-import { PARISHES_BY_FORANE } from '../parishes.js';
+import { ARCHDIOCESE, PARISHES_BY_FORANE } from '../parishes.js';
 import { audit } from './audit.js';
 
 export class RegistrationError extends Error {
@@ -84,6 +84,7 @@ export function validateRegistration(event, body, { hasPhoto = false, adminEdit 
   const values = {};
   const errors = {};
   const outside = body.outside_archdiocese === 'on' || body.outside_archdiocese === '1' || body.outside_archdiocese === true;
+  const hasForane = fields.some((f) => f.type === 'forane');
 
   for (const f of fields) {
     if (f.type === 'photo') {
@@ -99,11 +100,17 @@ export function validateRegistration(event, body, { hasPhoto = false, adminEdit 
       values[f.name] = null;
       continue;
     }
+    // the diocese is asked only of people from outside the Archdiocese; admins may type any
+    const typedOutside = f.outsideOnly && hasForane && !adminEdit;
+    if (typedOutside && !outside) {
+      values[f.name] = ARCHDIOCESE;
+      continue;
+    }
 
     let v = typeof body[f.name] === 'string' ? body[f.name].trim() : '';
     if (!v) {
       values[f.name] = null;
-      if (f.required) errors[f.name] = `${f.label} is required.`;
+      if (f.required || typedOutside) errors[f.name] = `${f.label} is required.`;
       continue;
     }
     if (f.max && v.length > f.max) errors[f.name] = `${f.label} is too long (max ${f.max} characters).`;

@@ -50,7 +50,8 @@ export const FIELDS = [
   // "outside_archdiocese" and type both instead
   { name: 'forane', label: 'Forane', section: 'church', mode: 'required', type: 'forane', max: 100, options: FORANES },
   { name: 'parish', label: 'Parish', section: 'church', mode: 'required', type: 'parish', max: 255 },
-  text('diocese', 'Diocese', 'church', 'hidden', { max: 255 }),
+  // typed only by people from outside the Archdiocese; everyone else is saved as in it
+  text('diocese', 'Diocese', 'church', 'optional', { max: 255, outsideOnly: true }),
   // optional: people who belong to none of the movements leave it blank
   { name: 'organization', label: 'Organization you belong to', section: 'church', mode: 'optional', type: 'select', max: 255, options: ORGANIZATIONS },
   text('institution', 'School / College / Institution', 'church', 'hidden', { max: 255 }),
