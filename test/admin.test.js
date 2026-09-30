@@ -1,4 +1,4 @@
-import { one, query, resetDb, slotFor, validBody } from './helpers.js';
+import { CONTACT_ON, one, query, resetDb, slotFor, validBody } from './helpers.js';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import { after, before, describe, test } from 'node:test';
@@ -77,8 +77,13 @@ describe('public pages', () => {
     assert.match(html, /Sun 11 Oct/);
   });
 
-  test('registration wizard has five steps with one name field', async () => {
+  test('registration wizard has four steps with one name field and the mobile in step 1', async () => {
+    await query('UPDATE events SET form_config = NULL WHERE id = ?', [event.id]);
     const html = await (await client().request('/register')).text();
+    await query('UPDATE events SET form_config = ? WHERE id = ?', [CONTACT_ON, event.id]);
+    assert.ok(!html.includes('<span class="t">Contact</span>'), 'contact step is off');
+    for (const name of ['whatsapp', 'email', 'district', 'date_of_birth']) assert.ok(!html.includes(`name="${name}"`), name);
+    assert.match(html, /data-step="personal"(?:(?!<\/fieldset>)[\s\S])*<input type="tel" name="mobile"[^>]*required/, 'mobile is asked in the Personal step');
     assert.ok(!/<span class="t">Requirements<\/span>/.test(html), 'requirements step is off');
     assert.match(html, /Full name \(as printed on your card\)/);
     assert.ok(!html.includes('name="last_name"') && !html.includes('name="accommodation_required"'));
@@ -86,7 +91,7 @@ describe('public pages', () => {
     assert.match(html, /name="outside_archdiocese"/);
     assert.match(html, /data-outside-only hidden>[\s\S]*?<input type="text" name="diocese"[^>]*disabled/, 'diocese box waits for "outside"');
     assert.match(html, /<optgroup label="Kottayam"><option >Assumption Church, Eravinalloor<\/option>/);
-    for (const step of ['Personal', 'Contact', 'Parish', 'Activities', 'Confirm']) {
+    for (const step of ['Personal', 'Parish', 'Activities', 'Confirm']) {
       assert.match(html, new RegExp(`<span class="t">${step}</span>`));
     }
     assert.ok(!html.includes('<span class="t">Emergency</span>') && !html.includes('name="emergency_mobile"'), 'emergency step is off');
@@ -268,7 +273,7 @@ describe('activity and slot management', () => {
     assert.match(html, /<option >Non-veg<\/option>|<option>Non-veg<\/option>/);
     assert.match(html, /--primary: #223366/);
     // put it back for the other tests
-    await query(`UPDATE events SET start_at = '2099-10-10 09:00:00', end_at = '2099-10-11 09:00:00', form_config = NULL, content = NULL WHERE id = ?`, [event.id]);
+    await query(`UPDATE events SET start_at = '2099-10-10 09:00:00', end_at = '2099-10-11 09:00:00', form_config = ?, content = NULL WHERE id = ?`, [CONTACT_ON, event.id]);
     await query(`UPDATE activity_slots s JOIN activities a ON a.id = s.activity_id SET s.start_at = s.start_at - INTERVAL 7 DAY, s.end_at = s.end_at - INTERVAL 7 DAY WHERE a.event_id = ?`, [event.id]);
   });
 

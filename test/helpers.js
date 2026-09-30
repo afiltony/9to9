@@ -13,7 +13,14 @@ const { seed } = await import('../scripts/seed.js');
 const TABLES = ['checkins', 'participant_documents', 'audit_logs', 'participant_slots', 'emergency_contacts',
   'participants', 'activity_slots', 'activities', 'events', 'admin_users', 'sessions', 'schema_migrations'];
 
-/** Drops every table, re-applies migrations and seeds the event (year 2099, registration open). */
+// The Contact step is off by default (mobile moved to the Personal step). Some tests use its
+// fields, so they run with it switched back on, as an admin can in Settings.
+export const CONTACT_ON = JSON.stringify({
+  whatsapp: 'optional', email: 'optional', address: 'optional', locality: 'optional',
+  district: 'required', state: 'optional', pin_code: 'optional', country: 'optional',
+});
+
+/** Drops every table, re-applies migrations and seeds the event (year 2099, registration open, Contact step on). */
 export async function resetDb() {
   const pool = getPool();
   const conn = await pool.getConnection();
@@ -26,6 +33,7 @@ export async function resetDb() {
   }
   await migrate({ log: () => {} });
   await seed({ year: 2099, code: '9TO9', log: () => {} });
+  await getPool().query('UPDATE events SET form_config = ? WHERE event_code = ?', [CONTACT_ON, '9TO9']);
   return one('SELECT * FROM events WHERE event_code = ?', ['9TO9']);
 }
 

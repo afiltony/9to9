@@ -28,6 +28,8 @@ export const FIELDS = [
   // one name field: stored in first_name and printed on the card as typed
   text('first_name', 'Full name (as printed on your card)', 'personal', 'required', { locked: true, autocomplete: 'name', latin: true,
     help: 'Type your name in English letters, exactly as it should appear on your card.' }),
+  // asked in the Personal step now that the Contact step is off
+  text('mobile', 'Mobile number', 'personal', 'required', { type: 'tel', locked: true, max: 20, autocomplete: 'tel-national', countryCode: true }),
   text('middle_name', 'Middle name', 'personal', 'hidden', { autocomplete: 'additional-name', latin: true }),
   text('last_name', 'Last name', 'personal', 'hidden', { autocomplete: 'family-name', latin: true }),
   text('preferred_name', 'Preferred name (printed on card)', 'personal', 'hidden', { latin: true }),
@@ -37,15 +39,15 @@ export const FIELDS = [
   { name: 'profile_photo', label: 'Profile photograph', section: 'personal', mode: 'required', type: 'photo',
     help: 'JPG or PNG, face clearly visible. It is printed on your ID card.' },
 
-  text('mobile', 'Mobile number', 'contact', 'required', { type: 'tel', locked: true, max: 20, autocomplete: 'tel-national', countryCode: true }),
-  text('whatsapp', 'WhatsApp number', 'contact', 'optional', { type: 'tel', max: 20, countryCode: true }),
-  text('email', 'Email', 'contact', 'optional', { type: 'email', max: 255, autocomplete: 'email' }),
-  { name: 'address', label: 'Address', section: 'contact', mode: 'optional', type: 'textarea', max: 500 },
-  text('locality', 'Locality', 'contact', 'optional', { max: 150 }),
-  text('district', 'District', 'contact', 'required'),
-  text('state', 'State', 'contact', 'optional', { default: 'Kerala' }),
-  text('pin_code', 'PIN code', 'contact', 'optional', { max: 20, inputmode: 'numeric' }),
-  text('country', 'Country', 'contact', 'optional', { default: 'India' }),
+  // the Contact step is no longer asked; kept so admins can switch fields back on in Settings
+  text('whatsapp', 'WhatsApp number', 'contact', 'hidden', { type: 'tel', max: 20, countryCode: true }),
+  text('email', 'Email', 'contact', 'hidden', { type: 'email', max: 255, autocomplete: 'email' }),
+  { name: 'address', label: 'Address', section: 'contact', mode: 'hidden', type: 'textarea', max: 500 },
+  text('locality', 'Locality', 'contact', 'hidden', { max: 150 }),
+  text('district', 'District', 'contact', 'hidden'),
+  text('state', 'State', 'contact', 'hidden', { default: 'Kerala' }),
+  text('pin_code', 'PIN code', 'contact', 'hidden', { max: 20, inputmode: 'numeric' }),
+  text('country', 'Country', 'contact', 'hidden', { default: 'India' }),
 
   // dropdowns for the Archdiocese of Changanacherry; people from outside it tick
   // "outside_archdiocese" and type both instead

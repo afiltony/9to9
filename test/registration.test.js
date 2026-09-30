@@ -1,4 +1,4 @@
-import { one, query, resetDb, slotFor, validBody } from './helpers.js';
+import { CONTACT_ON, one, query, resetDb, slotFor, validBody } from './helpers.js';
 import assert from 'node:assert/strict';
 import { after, before, beforeEach, describe, test } from 'node:test';
 import { closePool } from '../src/db.js';
@@ -40,7 +40,7 @@ describe('validation', () => {
   });
 
   test('rejects invalid phone, email, date and non-English names', () => {
-    const withDob = { ...event, form_config: JSON.stringify({ date_of_birth: 'required' }) };
+    const withDob = { ...event, form_config: JSON.stringify({ ...JSON.parse(CONTACT_ON), date_of_birth: 'required' }) };
     const { errors } = validateRegistration(withDob, validBody({
       mobile: '12345', email: 'nope', date_of_birth: '2150-01-01', first_name: 'ജോൺ',
     }));
@@ -142,6 +142,20 @@ describe('registration', () => {
     await rejects(register({ mobile: '9000000001', first_name: 'anna' }), 'DUPLICATE');
     const sibling = await register({ mobile: '9000000001', first_name: 'Tom' });
     assert.ok(sibling.id);
+  });
+
+  test('with the Contact step off, only the mobile is collected and duplicates are still caught', async () => {
+    const noContact = { ...event, form_config: null };
+    const body = validBody({ first_name: 'Only Mobile', mobile: '9000000009' });
+    delete body.district;
+    const { values, errors } = validateRegistration(noContact, body, { hasPhoto: true });
+    assert.deepEqual(errors, {});
+    assert.equal(values.mobile, '9000000009');
+    assert.ok(!('district' in values) && !('email' in values), 'other contact fields are not collected');
+    await registerParticipant(event.id, values, []);
+    await rejects(registerParticipant(event.id, values, []), 'DUPLICATE');
+    const missing = validateRegistration(noContact, { ...body, mobile: '' }, { hasPhoto: true });
+    assert.ok(missing.errors.mobile, 'mobile is still required');
   });
 
   test('duplicate rule mobile blocks any second registration on the phone', async () => {
