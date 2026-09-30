@@ -31,7 +31,8 @@ export const FIELDS = [
   text('middle_name', 'Middle name', 'personal', 'hidden', { autocomplete: 'additional-name', latin: true }),
   text('last_name', 'Last name', 'personal', 'hidden', { autocomplete: 'family-name', latin: true }),
   text('preferred_name', 'Preferred name (printed on card)', 'personal', 'hidden', { latin: true }),
-  { name: 'date_of_birth', label: 'Date of birth', section: 'personal', mode: 'required', type: 'date' },
+  // no longer asked; kept so admins can switch it back on in Settings
+  { name: 'date_of_birth', label: 'Date of birth', section: 'personal', mode: 'hidden', type: 'date' },
   { name: 'gender', label: 'Gender', section: 'personal', mode: 'required', type: 'select', options: GENDERS },
   { name: 'profile_photo', label: 'Profile photograph', section: 'personal', mode: 'required', type: 'photo',
     help: 'JPG or PNG, face clearly visible. It is printed on your ID card.' },

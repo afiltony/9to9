@@ -34,8 +34,8 @@ dependencies (no headless Chrome, no native image libraries).
   “Book this slot”, contact, privacy and terms pages. It includes SEO, Open Graph and schema.org Event metadata.
   Pages are mobile-first, with self-hosted Poppins/Inter fonts, keyboard and screen-reader support, and reduced
   motion when the device asks for it.
-- **Registration:** drag-and-drop photo upload that is resized in the browser, and age calculated from the date
-  of birth. Mobile numbers accept a country code. Seat counts refresh live from the server, and time conflicts are
+- **Registration:** drag-and-drop photo upload that is resized in the browser (date of birth is no longer asked;
+  it can be switched back on in Settings). Mobile numbers accept a country code. Seat counts refresh live from the server, and time conflicts are
   shown as they happen. There is a review step with Edit links, and a local draft keeps typed data if the page is
   refreshed.
 - **Booking safety:** each registration runs in one transaction that locks the event row and the chosen slot rows

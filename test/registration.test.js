@@ -32,14 +32,16 @@ describe('validation', () => {
 
   test('reports missing required fields and consents', () => {
     const { errors } = validateRegistration(event, {});
-    for (const f of ['first_name', 'mobile', 'date_of_birth', 'consent_information', 'consent_rules']) {
+    for (const f of ['first_name', 'mobile', 'consent_information', 'consent_rules']) {
       assert.ok(errors[f], `expected an error for ${f}`);
     }
     assert.ok(!errors.consent_media, 'media consent is optional');
+    assert.ok(!errors.date_of_birth, 'date of birth is no longer asked');
   });
 
   test('rejects invalid phone, email, date and non-English names', () => {
-    const { errors } = validateRegistration(event, validBody({
+    const withDob = { ...event, form_config: JSON.stringify({ date_of_birth: 'required' }) };
+    const { errors } = validateRegistration(withDob, validBody({
       mobile: '12345', email: 'nope', date_of_birth: '2150-01-01', first_name: 'ജോൺ',
     }));
     assert.ok(errors.mobile && errors.email && errors.date_of_birth && errors.first_name);
