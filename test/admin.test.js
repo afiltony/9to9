@@ -65,6 +65,7 @@ describe('public pages', () => {
       const html = await res.text();
       assert.match(html, /<title>[^<]*9 TO 9 Meet/, path);
       assert.match(html, /og:title/, path);
+      assert.match(html, /<meta property="og:image" content="[^"]*\/static\/img\/poster-popup\.jpg\?v=/, `${path} shares the new poster`);
       assert.match(html, /<img src="\/static\/img\/organizers\.jpg[^>]*alt="Organized by/, `${path} shows the organizers' logos`);
     }
   });

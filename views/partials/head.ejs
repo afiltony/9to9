@@ -5,7 +5,11 @@
   const pageTitle = typeof title !== 'undefined' && title ? `${title} · 9 TO 9 Meet` : siteTitle;
   const desc = typeof description !== 'undefined' && description ? description
     : `${event ? event.subtitle + '. ' : ''}10 October 9 AM to 11 October 9 AM${event && event.venue ? ' at ' + event.venue : ''}. Register online and book your activity slots.`;
-  const heroImg = event && event.hero_image_path ? `/media/${event.hero_image_path}` : '/static/img/poster.jpg?v=' + v;
+  // link previews (WhatsApp, Facebook…) use the wording and image of the current poster
+  const shareTitle = typeof title !== 'undefined' && title ? pageTitle : '9 TO 9 Meet – Eyes Opened | Hearts on Fire · 24 Hour God Experience';
+  const shareDesc = typeof description !== 'undefined' && description ? description
+    : `Youth camp inspired by St. Carlo Acutis — from Emmaus blindness to Eucharistic vision (Lk 24:13-35). Oct 10, 9 AM to Oct 11, 9 AM${event && event.venue ? ' at ' + event.venue : ''}. Register online at www.mvevents.in`;
+  const shareImg = '/static/img/poster-popup.jpg?v=' + v;
   const showMobileCta = !!(state && state.open && path !== '/register' && !path.startsWith('/r/'));
   const navLink = (href, label) => `<a href="${href}"${path === href ? ' aria-current="page"' : ''}>${label}</a>`;
 %><!doctype html>
@@ -19,14 +23,18 @@
   <meta name="theme-color" content="<%= theme.primary || '#ce2029' %>">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="9 TO 9 Meet">
-  <meta property="og:title" content="<%= pageTitle %>">
-  <meta property="og:description" content="<%= desc %>">
+  <meta property="og:title" content="<%= shareTitle %>">
+  <meta property="og:description" content="<%= shareDesc %>">
   <meta property="og:url" content="<%= baseUrl + path %>">
-  <meta property="og:image" content="<%= baseUrl + heroImg %>">
+  <meta property="og:image" content="<%= baseUrl + shareImg %>">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="900">
+  <meta property="og:image:height" content="1181">
+  <meta property="og:image:alt" content="9 TO 9 Meet poster — Eyes opened, hearts on fire. 24 hour God experience, Oct 10 9 AM to Oct 11 9 AM at Media Village.">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="<%= pageTitle %>">
-  <meta name="twitter:description" content="<%= desc %>">
-  <meta name="twitter:image" content="<%= baseUrl + heroImg %>">
+  <meta name="twitter:title" content="<%= shareTitle %>">
+  <meta name="twitter:description" content="<%= shareDesc %>">
+  <meta name="twitter:image" content="<%= baseUrl + shareImg %>">
   <link rel="preload" href="/static/fonts/roboto-slab/files/roboto-slab-latin-900-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/static/fonts/roboto/files/roboto-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/static/css/app.css?v=<%= typeof v !== 'undefined' ? v : '' %>">
