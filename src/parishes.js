@@ -284,3 +284,9 @@ export const PARISHES_BY_FORANE = {
 };
 
 export const FORANES = Object.keys(PARISHES_BY_FORANE);
+
+/** Diocese as typed, or the Archdiocese when the parish is one of its own. */
+export function dioceseOf(p) {
+  if (p.diocese) return p.diocese;
+  return PARISHES_BY_FORANE[p.forane]?.includes(p.parish) ? ARCHDIOCESE : null;
+}

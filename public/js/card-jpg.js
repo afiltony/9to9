@@ -1,6 +1,6 @@
 // Card printers that want an image at actual size: the ID card PDF is drawn in the browser
-// with pdf.js at 300 dpi and each side saved as a JPG — 1181 × 1476 px = 10 × 12.5 cm,
-// with 300 dpi written into the file so printing software uses the real size.
+// with pdf.js at 300 dpi and each side saved as a JPG — 1299 × 1772 px = 11 × 15 cm
+// (the 7 × 11 cm card with a 2 cm gap round it), with 300 dpi written into the file so printing software uses the real size.
 // Single cards download as two JPGs; bulk printing downloads a ZIP of JPGs.
 (function () {
   var DPI = 300;
