@@ -9,11 +9,13 @@ import { dayLabel, displayName, fullName, shortDate, timeRange } from '../lib/fo
 import { dioceseOf } from '../parishes.js';
 
 const MM = 72 / 25.4;
-// the participant card: 7 cm wide × 11 cm high
+// the participant card: 7 cm wide × 11 cm high, the design inset by a clear white gap all round
 export const CARD_W = 70 * MM;
 export const CARD_H = 110 * MM;
-// card-printer pages leave a clear 2 cm gap round the card: 11 × 15 cm
-const CARD_GAP = 20 * MM;
+const CARD_MARGIN = 20 * MM;
+// the design is laid out at this size, then scaled to fit inside the gap
+const DESIGN_W = 64 * MM;
+const DESIGN_H = 104 * MM;
 
 const INK = '#1b1d24';
 const MUTED = '#5d6272';
@@ -152,12 +154,14 @@ function fitLine(doc, text, x, y, width, font, size, min, opts = {}) {
 
 // ---------------------------------------------------------------- ID card (70 × 110 mm portrait)
 
-/** Fills the card white and clips to it; returns the card's box. */
+/** Fills the card white, then scales and centres the design inside the clear gap; returns the design's box. */
 function cardBox(doc, x, y) {
   doc.save();
   doc.rect(x, y, CARD_W, CARD_H).fill('#ffffff');
-  doc.rect(x, y, CARD_W, CARD_H).clip();
-  return { x, y, W: CARD_W, H: CARD_H };
+  const s = Math.min((CARD_W - CARD_MARGIN * 2) / DESIGN_W, (CARD_H - CARD_MARGIN * 2) / DESIGN_H);
+  doc.translate(x + (CARD_W - DESIGN_W * s) / 2, y + (CARD_H - DESIGN_H * s) / 2).scale(s);
+  doc.rect(0, 0, DESIGN_W, DESIGN_H).clip();
+  return { x: 0, y: 0, W: DESIGN_W, H: DESIGN_H };
 }
 
 const FOOTER_H = 16;
@@ -322,7 +326,7 @@ function cropMarks(doc, x0, y0, cols, rows) {
 
 /**
  * ID cards for many participants.
- *  layout 'card': one card per page (front, back, front, back…) for the card printer, with a clear gap round it.
+ *  layout 'card': one card per page (front, back, front, back…) for the card printer.
  *  layout 'a4':   as many cards as fit on an A4 sheet (4), with crop marks; each front sheet is followed by its
  *                 back sheet, mirrored left-to-right for long-edge duplex printing.
  * bookings: Map(participantId → confirmed bookings), printed on the back as "My experience".
@@ -348,12 +352,11 @@ export async function idCardsPdf(event, participants, { layout = 'card', booking
       cropMarks(doc, x0, y0, cols, rows);
     }
   } else {
-    const size = [CARD_W + CARD_GAP * 2, CARD_H + CARD_GAP * 2];
     for (const p of participants) {
-      doc.addPage({ size, margin: 0 });
-      drawIdFront(doc, event, p, CARD_GAP, CARD_GAP);
-      doc.addPage({ size, margin: 0 });
-      drawIdBack(doc, event, p, booked(p), CARD_GAP, CARD_GAP);
+      doc.addPage({ size: [CARD_W, CARD_H], margin: 0 });
+      drawIdFront(doc, event, p, 0, 0);
+      doc.addPage({ size: [CARD_W, CARD_H], margin: 0 });
+      drawIdBack(doc, event, p, booked(p), 0, 0);
     }
   }
   return toBuffer(doc);
